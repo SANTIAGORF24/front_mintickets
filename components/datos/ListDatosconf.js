@@ -2,6 +2,7 @@ import React from "react";
 import { Accordion, AccordionItem } from "@nextui-org/react";
 import { Register } from "../registro/Register";
 import { Temas } from "./Temas";
+import { Estados } from "./Estados";
 
 export function ListDatosconf() {
   const defaultContent =
@@ -14,12 +15,10 @@ export function ListDatosconf() {
           <AccordionItem key="1" aria-label="Temas" title="Temas">
             <Temas />
           </AccordionItem>
-
-          <AccordionItem
-            key="3"
-            aria-label="Nuevo usuario"
-            title="Nuevo usuario"
-          >
+          <AccordionItem key="2" aria-label="Estados" title="Estados">
+            <Estados />
+          </AccordionItem>
+          <AccordionItem key="3" aria-label="Usuarios" title="Usuarios">
             <Register />
           </AccordionItem>
         </Accordion>

@@ -15,7 +15,6 @@ import {
   Chip,
   User,
   Pagination,
-  Tooltip,
 } from "@nextui-org/react";
 import { PlusIcon } from "./PlusIcon";
 import { SearchIcon } from "./SearchIcon";

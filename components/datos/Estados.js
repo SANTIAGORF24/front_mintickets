@@ -18,96 +18,96 @@ import { SearchIcon } from "../ticket/SearchIcon";
 import { PlusIcon } from "../ticket/PlusIcon";
 import { DeleteIcon, EditIcon, EyeIcon } from "../ticket/Iconsactions";
 
-export function Temas() {
+export function Estados() {
   const [filterValue, setFilterValue] = useState("");
-  const [newTopic, setNewTopic] = useState("");
-  const [topics, setTopics] = useState([]);
-  const [editingTopicId, setEditingTopicId] = useState(null);
-  const [updatedTopicName, setUpdatedTopicName] = useState("");
+  const [newStatu, setNewStatu] = useState("");
+  const [status, setStatus] = useState([]);
+  const [editingStatuId, setEditingStatuId] = useState(null);
+  const [updatedStatuName, setUpdatedStatuName] = useState("");
 
-  const fetchTopics = async () => {
+  const fetchStatus = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/topics");
+      const response = await fetch("http://127.0.0.1:5000/status");
       if (response.ok) {
         const data = await response.json();
-        setTopics(data.topics);
+        setStatus(data.status);
       } else {
-        console.error("Failed to fetch topics");
+        console.error("Failed to fetch status");
       }
     } catch (error) {
-      console.error("Error fetching topics:", error);
+      console.error("Error fetching status:", error);
     }
   };
 
   useEffect(() => {
-    fetchTopics();
+    fetchStatus();
   }, []);
 
   const handleInputChange = (event) => {
-    setNewTopic(event.target.value);
+    setNewStatu(event.target.value);
   };
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:5000/topics", {
+      const response = await fetch("http://127.0.0.1:5000/status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: newTopic }),
+        body: JSON.stringify({ name: newStatu }),
       });
       if (response.ok) {
-        setNewTopic("");
-        fetchTopics();
+        setNewStatu("");
+        fetchStatus();
       } else {
-        console.error("Failed to add new topic");
+        console.error("Failed to add new statu");
       }
     } catch (error) {
-      console.error("Error adding new topic:", error);
+      console.error("Error adding new statu:", error);
     }
   };
 
-  const handleDeleteTopic = async (topicId) => {
+  const handleDeleteStatu = async (statuId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/topics/${topicId}`, {
+      const response = await fetch(`http://127.0.0.1:5000/status/${statuId}`, {
         method: "DELETE",
       });
       if (response.ok) {
-        fetchTopics();
+        fetchStatus();
       } else {
-        console.error("Failed to delete topic");
+        console.error("Failed to delete statu");
       }
     } catch (error) {
-      console.error("Error deleting topic:", error);
+      console.error("Error deleting statu:", error);
     }
   };
 
-  const handleEditTopic = (topicId, topicName) => {
-    setEditingTopicId(topicId);
-    setUpdatedTopicName(topicName);
+  const handleEditStatu = (statuId, statuName) => {
+    setEditingStatuId(statuId);
+    setUpdatedStatuName(statuName);
   };
 
-  const handleUpdateTopic = async () => {
+  const handleUpdateStatu = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/topics/${editingTopicId}`,
+        `http://127.0.0.1:5000/status/${editingStatuId}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ name: updatedTopicName }),
+          body: JSON.stringify({ name: updatedStatuName }),
         }
       );
       if (response.ok) {
-        setEditingTopicId(null);
-        fetchTopics();
+        setEditingStatuId(null);
+        fetchStatus();
       } else {
-        console.error("Failed to update topic");
+        console.error("Failed to update statu");
       }
     } catch (error) {
-      console.error("Error updating topic:", error);
+      console.error("Error updating statu:", error);
     }
   };
 
@@ -120,7 +120,7 @@ export function Temas() {
       <div className="flex justify-between items-end mb-4">
         <Input
           isClearable
-          placeholder="Search by topic..."
+          placeholder="Search by statu..."
           size="sm"
           startContent={<SearchIcon />}
           value={filterValue}
@@ -147,7 +147,7 @@ export function Temas() {
                 type="text"
                 variant="bordered"
                 placeholder="Ingrese un nuevo tema..."
-                value={newTopic}
+                value={newStatu}
                 onChange={handleInputChange}
               />
             </DropdownItem>
@@ -164,12 +164,12 @@ export function Temas() {
         </Dropdown>
       </div>
       <Table
-        aria-label="Topics Table"
+        aria-label="Status Table"
         isCompact
         removeWrapper
         bottomContentPlacement="outside"
         topContentPlacement="outside"
-        emptyContent="No topics found"
+        emptyContent="No status found"
       >
         <TableHeader>
           <TableColumn>ID</TableColumn>
@@ -177,34 +177,34 @@ export function Temas() {
           <TableColumn>Acciones</TableColumn>
         </TableHeader>
         <TableBody>
-          {topics.map((topic) => (
-            <TableRow key={topic.id}>
-              <TableCell className="text-black">{topic.id}</TableCell>
+          {status.map((statu) => (
+            <TableRow key={statu.id}>
+              <TableCell className="text-black">{statu.id}</TableCell>
               <TableCell className="text-black">
-                {editingTopicId === topic.id ? (
+                {editingStatuId === statu.id ? (
                   <Input
                     type="text"
-                    value={updatedTopicName}
-                    onChange={(e) => setUpdatedTopicName(e.target.value)}
+                    value={updatedStatuName}
+                    onChange={(e) => setUpdatedStatuName(e.target.value)}
                   />
                 ) : (
-                  topic.name
+                  statu.name
                 )}
               </TableCell>
               <TableCell>
-                {editingTopicId === topic.id ? (
-                  <Button onClick={handleUpdateTopic}>Actualizar</Button>
+                {editingStatuId === statu.id ? (
+                  <Button onClick={handleUpdateStatu}>Actualizar</Button>
                 ) : (
                   <div className="relative flex items-center gap-2">
                     <span
                       className="text-lg cursor-pointer active:opacity-50 text-sky-800"
-                      onClick={() => handleEditTopic(topic.id, topic.name)}
+                      onClick={() => handleEditStatu(statu.id, statu.name)}
                     >
                       <EditIcon />
                     </span>
                     <span
                       className="text-lg text-danger cursor-pointer active:opacity-50"
-                      onClick={() => handleDeleteTopic(topic.id)}
+                      onClick={() => handleDeleteStatu(statu.id)}
                     >
                       <DeleteIcon />
                     </span>

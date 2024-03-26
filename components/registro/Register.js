@@ -15,30 +15,108 @@ export function Register() {
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [foundUser, setFoundUser] = useState(null);
+
+  const buscarUsuario = async () => {
+    try {
+      let response;
+      if (username) {
+        response = await axios.get(
+          `http://127.0.0.1:5000/auth/users/username/${username}`
+        );
+      } else if (email) {
+        response = await axios.get(
+          `http://127.0.0.1:5000/auth/users/email/${email}`
+        );
+      } else if (firstName) {
+        response = await axios.get(
+          `http://127.0.0.1:5000/auth/users/firstName/${firstName}`
+        );
+      } else if (lastName) {
+        response = await axios.get(
+          `http://127.0.0.1:5000/auth/users/lastName/${lastName}`
+        );
+      } else {
+        setError("Por favor, ingrese al menos un criterio de búsqueda");
+        return;
+      }
+
+      setFoundUser(response.data);
+      setUsername(response.data.username);
+      setPassword(response.data.password);
+      setEmail(response.data.email);
+      setFirstName(response.data.first_name);
+      setLastName(response.data.last_name);
+      setSuccessMessage("");
+      setError("");
+    } catch (error) {
+      setError("Usuario no encontrado");
+      setFoundUser(null);
+      setUsername("");
+      setPassword("");
+      setEmail("");
+      setFirstName("");
+      setLastName("");
+    }
+  };
+
+  const eliminarUsuario = async () => {
+    try {
+      if (foundUser) {
+        await axios.delete(
+          `http://127.0.0.1:5000/auth/users/${foundUser.username}`
+        );
+        setSuccessMessage("Usuario eliminado con éxito");
+        setFoundUser(null);
+        setUsername("");
+        setPassword("");
+        setEmail("");
+        setFirstName("");
+        setLastName("");
+        setError("");
+      } else {
+        setError("No se ha encontrado ningún usuario");
+      }
+    } catch (error) {
+      setError("Hubo un problema al eliminar el usuario");
+      console.error(error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validación de campos obligatorios
     if (!username || !password || !email || !firstName || !lastName) {
-      setError("Por favor, complete todos los campos.");
+      setError("Por favor, complete todos los campos obligatorios");
       return;
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/register", {
+      const userData = {
         username,
         password,
         email,
         first_name: firstName,
         last_name: lastName,
-      });
+      };
 
-      setSuccessMessage("¡Usuario registrado con éxito!");
-      setError("");
-
-      console.log(response.data.message);
-      // Aquí puedes realizar acciones adicionales después del registro exitoso
+      if (foundUser) {
+        const response = await axios.put(
+          `http://127.0.0.1:5000/auth/users/${foundUser.username}`,
+          userData
+        );
+        setSuccessMessage("¡Usuario actualizado con éxito!");
+        setError("");
+        console.log(response.data.message);
+      } else {
+        const response = await axios.post(
+          "http://127.0.0.1:5000/auth/register",
+          userData
+        );
+        setSuccessMessage("¡Usuario registrado con éxito!");
+        setError("");
+        console.log(response.data.message);
+      }
     } catch (error) {
       if (error.response && error.response.status === 409) {
         setError("El usuario ya existe");
@@ -49,6 +127,16 @@ export function Register() {
     }
   };
 
+  const limpiarCampos = () => {
+    setUsername("");
+    setPassword("");
+    setEmail("");
+    setFirstName("");
+    setLastName("");
+    setFoundUser(null);
+    setError("");
+    setSuccessMessage("");
+  };
   return (
     <div className="flex justify-center items-center text-black py-10">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
@@ -58,7 +146,7 @@ export function Register() {
           <div className="text-green-500 mb-4">{successMessage}</div>
         )}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+          <div className="mb-4 ">
             <label htmlFor="username" className="block font-bold mb-2">
               Usuario:
             </label>
@@ -66,6 +154,7 @@ export function Register() {
               type="username"
               label="Usuario"
               variant="bordered"
+              value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="max-w-xs text-black"
             />
@@ -75,6 +164,7 @@ export function Register() {
               Contraseña:
             </label>
             <Input
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               label="Contraseña"
               variant="bordered"
@@ -101,6 +191,7 @@ export function Register() {
               Correo Electrónico:
             </label>
             <Input
+              value={email}
               type="email"
               label="Email"
               variant="bordered"
@@ -114,6 +205,7 @@ export function Register() {
               Nombre:
             </label>
             <Input
+              value={firstName}
               type="username"
               label="Nombres"
               variant="bordered"
@@ -126,6 +218,7 @@ export function Register() {
               Apellido:
             </label>
             <Input
+              value={lastName}
               type="username"
               label="Apellidos"
               variant="bordered"
@@ -137,7 +230,29 @@ export function Register() {
             type="submit"
             className="bg-[#4a53a0] text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
           >
-            Registrarse
+            {foundUser ? "Actualizar" : "Registrarse"}
+          </button>
+          <button
+            type="button"
+            className="bg-[#4a53a0] text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors ml-2"
+            onClick={buscarUsuario}
+          >
+            Buscar
+          </button>
+          <button
+            type="button"
+            className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors ml-2"
+            onClick={eliminarUsuario}
+            disabled={!foundUser}
+          >
+            Eliminar
+          </button>
+          <button
+            type="button"
+            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors ml-2"
+            onClick={limpiarCampos}
+          >
+            Limpiar
           </button>
         </form>
       </div>

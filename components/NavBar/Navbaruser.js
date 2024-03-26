@@ -28,7 +28,7 @@ export function Navbaruser() {
       console.log("Token de acceso:", token); // Opción 2: Verifica el token de acceso
 
       if (token) {
-        const response = await fetch("http://127.0.0.1:5000/user", {
+        const response = await fetch("http://127.0.0.1:5000/auth/user", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -66,12 +66,16 @@ export function Navbaruser() {
             className="w-100"
             width={120}
             height={120}
+            style={{ width: "auto", height: "auto" }} // Agrega estos estilos
+            alt="logo"
           />
           <Image
             src="/assets/img/mind.png"
             className="w-100"
             width={120}
             height={120}
+            style={{ width: "auto", height: "auto" }} // Agrega estos estilos
+            alt="logo"
           />
         </div>
       </NavbarBrand>
