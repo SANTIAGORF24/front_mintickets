@@ -3,6 +3,7 @@ import { Accordion, AccordionItem } from "@nextui-org/react";
 import { Register } from "../registro/Register";
 import { Temas } from "./Temas";
 import { Estados } from "./Estados";
+import { TerceroForm } from "../registro/TerceroForm";
 
 export function ListDatosconf() {
   const defaultContent =
@@ -18,7 +19,10 @@ export function ListDatosconf() {
           <AccordionItem key="2" aria-label="Estados" title="Estados">
             <Estados />
           </AccordionItem>
-          <AccordionItem key="3" aria-label="Usuarios" title="Usuarios">
+          <AccordionItem key="3" aria-label="Terceros" title="Terceros">
+            <TerceroForm />
+          </AccordionItem>
+          <AccordionItem key="4" aria-label="Usuarios" title="Usuarios">
             <Register />
           </AccordionItem>
         </Accordion>
