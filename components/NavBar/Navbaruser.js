@@ -85,17 +85,17 @@ export function Navbaruser() {
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem>
           <Link href="/ticket" className="text-[#4a53a0] font-semibld">
-            Casos
+            Mis tickets
           </Link>
         </NavbarItem>
         <NavbarItem>
           <Link href="/nuevoticket" className="text-[#4a53a0] font-semibld">
-            Nuevo Caso
+            Nuevo ticket
           </Link>
         </NavbarItem>
         <NavbarItem>
           <Link href="/todostickets" className="text-[#4a53a0] font-semibld">
-            Todos los Casos
+            Todos los tickets
           </Link>
         </NavbarItem>
       </NavbarContent>
