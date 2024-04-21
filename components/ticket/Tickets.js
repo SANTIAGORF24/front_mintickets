@@ -18,6 +18,8 @@ import {
 } from "@nextui-org/react";
 import { capitalize } from "./Utils";
 import { DeleteIcon, EditIcon, EyeIcon } from "./Iconsactions";
+import { TicketModal } from "./TicketModal";
+import { Editarticket } from "./Editarticket";
 
 const statusColorMap = {
   Creado: "danger", // Rojo
@@ -42,6 +44,9 @@ export function Tickets() {
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [userFullName, setUserFullName] = useState(""); // Nuevo estado para el nombre completo del usuario
+  const [selectedTicketDescription, setSelectedTicketDescription] =
+    useState(""); // Estado para almacenar la descripción del ticket seleccionado
+  const [selectedTicketId, setSelectedTicketId] = useState(""); // Estado para almacenar el ID del ticket seleccionado
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -98,21 +103,29 @@ export function Tickets() {
       });
   };
 
-  const renderActions = (id) => {
+  const openModalWithDescription = (id, description) => {
+    setSelectedTicketId(id);
+    setSelectedTicketDescription(description);
+    // Abre el modal aquí
+  };
+
+  const renderActions = (ticket) => {
     return (
       <div className="relative flex items-center gap-2">
         <span
           className="text-lg cursor-pointer active:opacity-50 text-black"
-          onClick={() => deleteTicket(id)}
+          onClick={() =>
+            openModalWithDescription(ticket.id, ticket.descripcion_caso)
+          }
         >
           <EyeIcon />
         </span>
         <span className="text-lg cursor-pointer active:opacity-50 text-blue-600">
-          <EditIcon />
+          <Editarticket ticketData={ticket} />
         </span>
         <span
           className="text-lg cursor-pointer active:opacity-50 trash-icon text-red-500"
-          onClick={() => deleteTicket(id)}
+          onClick={() => deleteTicket(ticket.id)}
         >
           <DeleteIcon />
         </span>
@@ -137,18 +150,6 @@ export function Tickets() {
   const handleRowsPerPageChange = (e) => {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
-  };
-
-  const handleNextPage = () => {
-    if (page < Math.ceil(tickets.length / rowsPerPage)) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
   };
 
   const headerColumns = columns.map((column) => (
@@ -230,8 +231,10 @@ export function Tickets() {
                 </TableCell>
                 <TableCell>{ticket.tercero_nombre}</TableCell>
                 <TableCell>{ticket.especialista_nombre}</TableCell>
-                <TableCell>{ticket.descripcion_caso}</TableCell>
-                <TableCell>{renderActions(ticket.id)}</TableCell>
+                <TableCell>
+                  {ticket.descripcion_caso.split(" ").slice(0, 10).join(" ")}
+                </TableCell>
+                <TableCell>{renderActions(ticket)}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -254,6 +257,12 @@ export function Tickets() {
           </div>
         </div>
       </div>
+      {/* Aquí se incluye el Modal con la descripción del ticket */}
+      <TicketModal
+        isOpen={selectedTicketId !== ""}
+        onClose={() => setSelectedTicketId("")}
+        description={selectedTicketDescription}
+      />
     </div>
   );
 }
