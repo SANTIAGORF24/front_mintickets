@@ -226,29 +226,39 @@ export function Todostickets() {
             onClear={handleClearSearch}
           />
           <div className="text-black">
-            <div>
-              <DatePicker
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                selectsStart
-                startDate={startDate}
-                endDate={endDate}
-                placeholderText="Fecha de inicio"
-              />
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                selectsEnd
-                startDate={startDate}
-                endDate={endDate}
-                minDate={startDate}
-                placeholderText="Fecha de fin"
-              />
-            </div>
-            <div>
-              <Button variant="text" onClick={clearFilters}>
-                Limpiar Filtro
-              </Button>
+            <div className="flex items-center justify-center space-x-3">
+              <div className="text-black border-black">
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  placeholderText="Fecha de inicio"
+                  className="bg-slate-100 p-3 rounded-lg"
+                />
+              </div>
+              <div className="text-black border-black">
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  placeholderText="Fecha de fin"
+                  className="bg-slate-100 p-3 rounded-lg"
+                />
+              </div>
+              <div>
+                <Button
+                  variant="text"
+                  onClick={clearFilters}
+                  className="bg-rose-400 text-white"
+                >
+                  Limpiar Filtro
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex gap-3">
