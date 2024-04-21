@@ -244,9 +244,9 @@ export function Tickets() {
             <label>
               Rows por pagina:
               <select value={rowsPerPage} onChange={handleRowsPerPageChange}>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="45">45</option>
               </select>
             </label>
             <Pagination
