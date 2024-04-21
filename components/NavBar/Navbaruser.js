@@ -87,7 +87,7 @@ export function Navbaruser() {
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="#" className="text-[#4a53a0] font-semibld">
+          <Link href="/nuevoticket" className="text-[#4a53a0] font-semibld">
             Nuevo Caso
           </Link>
         </NavbarItem>

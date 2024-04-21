@@ -1,180 +1,252 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { Input } from "@nextui-org/react";
-import { EyeFilledIcon } from "../login/EyeFilledIcon";
-import { EyeSlashFilledIcon } from "../login/EyeSlashFilledIcon";
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+  Button,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@nextui-org/react";
+
+import { SearchIcon } from "../ticket/SearchIcon";
+import { PlusIcon } from "../ticket/PlusIcon";
+import { DeleteIcon, EditIcon, EyeIcon } from "../ticket/Iconsactions";
 
 export function TerceroForm() {
-  const [isVisible, setIsVisible] = React.useState(false);
-  const toggleVisibility = () => setIsVisible(!isVisible);
+  const [filterValue, setFilterValue] = useState("");
+  const [newTercero, setNewTercero] = useState({ name: "", email: "" });
+  const [terceros, setTerceros] = useState([]);
+  const [editingTerceroId, setEditingTerceroId] = useState(null);
+  const [updatedTercero, setUpdatedTercero] = useState({ name: "", email: "" });
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [foundTercero, setFoundTercero] = useState(null);
-
-  const searchTercero = async () => {
+  const fetchTerceros = async () => {
     try {
-      let response;
-      if (name) {
-        response = await axios.get(
-          `http://127.0.0.1:5000/terceros/name/${name}`
-        );
-      } else if (email) {
-        response = await axios.get(
-          `http://127.0.0.1:5000/terceros/email/${email}`
-        );
+      const response = await fetch("http://127.0.0.1:5000/terceros");
+      if (response.ok) {
+        const data = await response.json();
+        setTerceros(data.terceros);
       } else {
-        setError("Please enter at least one search criteria");
-        return;
+        console.error("Failed to fetch terceros");
       }
-
-      setFoundTercero(response.data);
-      setName(response.data.name);
-      setEmail(response.data.email);
-      setSuccessMessage("");
-      setError("");
     } catch (error) {
-      setError("Tercero not found");
-      setFoundTercero(null);
-      setName("");
-      setEmail("");
+      console.error("Error fetching terceros:", error);
     }
   };
 
-  const deleteTercero = async () => {
+  useEffect(() => {
+    fetchTerceros();
+  }, []);
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setNewTercero({ ...newTercero, [name]: value });
+  };
+
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
     try {
-      if (foundTercero) {
-        await axios.delete(`http://127.0.0.1:5000/terceros/${foundTercero.id}`);
-        setSuccessMessage("Tercero deleted successfully");
-        setFoundTercero(null);
-        setName("");
-        setEmail("");
-        setError("");
+      const response = await fetch("http://127.0.0.1:5000/terceros", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTercero),
+      });
+      if (response.ok) {
+        setNewTercero({ name: "", email: "" });
+        fetchTerceros();
       } else {
-        setError("No Tercero found");
+        console.error("Failed to add new tercero");
       }
     } catch (error) {
-      setError("There was a problem deleting the Tercero");
-      console.error(error);
+      console.error("Error adding new tercero:", error);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!name || !email) {
-      setError("Please fill in all required fields");
-      return;
-    }
-
+  const handleDeleteTercero = async (terceroId) => {
     try {
-      const terceroData = {
-        name,
-        email,
-      };
-
-      if (foundTercero) {
-        const response = await axios.put(
-          `http://127.0.0.1:5000/terceros/${foundTercero.id}`,
-          terceroData
-        );
-        setSuccessMessage("Tercero updated successfully!");
-        setError("");
-        console.log(response.data.message);
+      const response = await fetch(
+        `http://127.0.0.1:5000/terceros/${terceroId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.ok) {
+        fetchTerceros();
       } else {
-        const response = await axios.post(
-          "http://127.0.0.1:5000/terceros",
-          terceroData
-        );
-        setSuccessMessage("Tercero registered successfully!");
-        setError("");
-        console.log(response.data.message);
+        console.error("Failed to delete tercero");
       }
     } catch (error) {
-      if (error.response && error.response.status === 409) {
-        setError("Tercero already exists");
-      } else {
-        setError("There was a problem processing your request");
-      }
-      setSuccessMessage("");
+      console.error("Error deleting tercero:", error);
     }
   };
 
-  const clearFields = () => {
-    setName("");
-    setEmail("");
-    setFoundTercero(null);
-    setError("");
-    setSuccessMessage("");
+  const handleEditTercero = (terceroId, tercero) => {
+    setEditingTerceroId(terceroId);
+    setUpdatedTercero(tercero);
+  };
+
+  const handleInputChangeEdit = (event) => {
+    const { name, value } = event.target;
+    setUpdatedTercero({ ...updatedTercero, [name]: value });
+  };
+
+  const handleUpdateTercero = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/terceros/${editingTerceroId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedTercero),
+        }
+      );
+      if (response.ok) {
+        setEditingTerceroId(null);
+        fetchTerceros();
+      } else {
+        console.error("Failed to update tercero");
+      }
+    } catch (error) {
+      console.error("Error updating tercero:", error);
+    }
+  };
+
+  const onSearchChange = (event) => {
+    setFilterValue(event.target.value);
   };
 
   return (
-    <div className="flex justify-center items-center text-black py-10">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-4">Tercero Form</h2>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        {successMessage && (
-          <div className="text-green-500 mb-4">{successMessage}</div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block font-bold mb-2">
-              Name:
-            </label>
-            <Input
-              type="text"
-              label="Name"
+    <div>
+      <div className="flex justify-between items-end mb-4">
+        <Input
+          isClearable
+          placeholder="Search by tercero name or email..."
+          size="sm"
+          startContent={<SearchIcon />}
+          value={filterValue}
+          onChange={onSearchChange}
+        />
+        <Dropdown>
+          <DropdownTrigger>
+            <Button
               variant="bordered"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="max-w-xs text-black"
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="block font-bold mb-2">
-              Email:
-            </label>
-            <Input
-              value={email}
-              type="email"
-              label="Email"
-              variant="bordered"
-              onChange={(e) => setEmail(e.target.value)}
-              className="max-w-xs text-black"
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-[#4a53a0] text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
-          >
-            {foundTercero ? "Update" : "Register"}
-          </button>
-          <button
-            type="button"
-            className="bg-[#4a53a0] text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors ml-2"
-            onClick={searchTercero}
-          >
-            Search
-          </button>
-          <button
-            type="button"
-            className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors ml-2"
-            onClick={deleteTercero}
-            disabled={!foundTercero}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors ml-2"
-            onClick={clearFields}
-          >
-            Clear
-          </button>
-        </form>
+              className="bg-primary text-white"
+              size="sm"
+            >
+              <PlusIcon />
+              Nuevo
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu>
+            <DropdownItem
+              isReadOnly
+              key="tercero"
+              className="cursor-auto text-black"
+            >
+              <Input
+                type="text"
+                variant="bordered"
+                placeholder="Enter new tercero name..."
+                name="name"
+                value={newTercero.name}
+                onChange={handleInputChange}
+              />
+              <Input
+                type="email"
+                variant="bordered"
+                placeholder="Enter new tercero email..."
+                name="email"
+                value={newTercero.email}
+                onChange={handleInputChange}
+              />
+            </DropdownItem>
+            <DropdownItem>
+              <Button
+                type="submit"
+                variant="bordered"
+                onClick={handleFormSubmit}
+              >
+                Agregar
+              </Button>
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       </div>
+      <Table
+        aria-label="Terceros Table"
+        isCompact
+        removeWrapper
+        bottomContentPlacement="outside"
+        topContentPlacement="outside"
+        emptyContent="No terceros found"
+      >
+        <TableHeader>
+          <TableColumn>ID</TableColumn>
+          <TableColumn>Nombre</TableColumn>
+          <TableColumn>Email</TableColumn>
+          <TableColumn>Acciones</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {terceros.map((tercero) => (
+            <TableRow key={tercero.id}>
+              <TableCell className="text-black">{tercero.id}</TableCell>
+              <TableCell className="text-black">
+                {editingTerceroId === tercero.id ? (
+                  <Input
+                    type="text"
+                    name="name"
+                    value={updatedTercero.name}
+                    onChange={handleInputChangeEdit}
+                  />
+                ) : (
+                  tercero.name
+                )}
+              </TableCell>
+              <TableCell className="text-black">
+                {editingTerceroId === tercero.id ? (
+                  <Input
+                    type="email"
+                    name="email"
+                    value={updatedTercero.email}
+                    onChange={handleInputChangeEdit}
+                  />
+                ) : (
+                  tercero.email
+                )}
+              </TableCell>
+              <TableCell>
+                {editingTerceroId === tercero.id ? (
+                  <Button onClick={handleUpdateTercero}>Actualizar</Button>
+                ) : (
+                  <div className="relative flex items-center gap-2">
+                    <span
+                      className="text-lg cursor-pointer active:opacity-50 text-sky-800"
+                      onClick={() => handleEditTercero(tercero.id, tercero)}
+                    >
+                      <EditIcon />
+                    </span>
+                    <span
+                      className="text-lg text-danger cursor-pointer active:opacity-50"
+                      onClick={() => handleDeleteTercero(tercero.id)}
+                    >
+                      <DeleteIcon />
+                    </span>
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
