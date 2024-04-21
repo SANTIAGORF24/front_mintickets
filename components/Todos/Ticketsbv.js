@@ -34,47 +34,12 @@ const columns = [
   { uid: "actions", name: "Acciones" }, // Nueva columna de acciones
 ];
 
-export function Tickets() {
+export function Ticketsbv() {
   const [tickets, setTickets] = useState([]);
   const [filterValue, setFilterValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [userEmail, setUserEmail] = useState("");
-  const [userId, setUserId] = useState("");
-  const [userFullName, setUserFullName] = useState(""); // Nuevo estado para el nombre completo del usuario
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-
-        if (token) {
-          const response = await fetch("http://127.0.0.1:5000/auth/user", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            setUserFullName(data.full_name); // Almacenar el nombre completo del usuario
-            setUserEmail(data.email);
-            setUserId(data.id);
-            console.log("Nombre completo del usuario:", data.full_name);
-            console.log("Correo del usuario:", data.email);
-            console.log("ID del usuario:", data.id);
-          } else {
-            console.error(data.message);
-          }
-        }
-      } catch (error) {
-        console.error("Error al obtener los datos del usuario:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   useEffect(() => {
     axios
@@ -91,6 +56,7 @@ export function Tickets() {
     axios
       .delete(`http://127.0.0.1:5000/tickets/${id}`)
       .then((response) => {
+        // Recargar la página después de eliminar el ticket
         window.location.reload();
       })
       .catch((error) => {
@@ -162,19 +128,13 @@ export function Tickets() {
 
   const filteredTickets = tickets.filter(
     (ticket) =>
-      ticket.especialista_nombre.toLowerCase() === userFullName.toLowerCase() &&
-      !ticket.estado.toLowerCase().includes("solucionado") &&
-      (ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
-        ticket.estado.toLowerCase().includes(filterValue.toLowerCase()) ||
-        ticket.tercero_nombre
-          .toLowerCase()
-          .includes(filterValue.toLowerCase()) ||
-        ticket.especialista_nombre
-          .toLowerCase()
-          .includes(filterValue.toLowerCase()) ||
-        ticket.descripcion_caso
-          .toLowerCase()
-          .includes(filterValue.toLowerCase()))
+      ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
+      ticket.estado.toLowerCase().includes(filterValue.toLowerCase()) ||
+      ticket.tercero_nombre.toLowerCase().includes(filterValue.toLowerCase()) ||
+      ticket.especialista_nombre
+        .toLowerCase()
+        .includes(filterValue.toLowerCase()) ||
+      ticket.descripcion_caso.toLowerCase().includes(filterValue.toLowerCase())
   );
 
   const paginatedTickets = filteredTickets.slice(
@@ -195,11 +155,7 @@ export function Tickets() {
             onClear={handleClearSearch}
           />
           <div className="flex gap-3">
-            <Button
-              color="primary"
-              variant="flat"
-              onClick={() => (window.location.href = "/nuevoticket")}
-            >
+            <Button color="primary" variant="flat" href="/nuevoticket">
               Nuevo Ticket
             </Button>
           </div>
@@ -237,6 +193,7 @@ export function Tickets() {
           </TableBody>
         </Table>
         <div className="flex justify-between items-center mt-4 text-black">
+          <span>Total tickets: {tickets.length}</span>
           <div>
             <label>
               Rows por pagina:

@@ -16,16 +16,17 @@ import Image from "next/image";
 
 export function Navbaruser() {
   const router = useRouter();
+  const [userFullName, setUserFullName] = useState(""); // Estado para almacenar el nombre completo del usuario
   const [userEmail, setUserEmail] = useState(""); // Estado para almacenar el correo del usuario
+  const [userId, setUserId] = useState(""); // Estado para almacenar el ID del usuario
 
   useEffect(() => {
-    fetchUserEmail();
+    fetchUserData();
   }, []);
 
-  const fetchUserEmail = async () => {
+  const fetchUserData = async () => {
     try {
       const token = localStorage.getItem("access_token"); // Obtener el token de acceso del almacenamiento local
-      console.log("Token de acceso:", token); // Opción 2: Verifica el token de acceso
 
       if (token) {
         const response = await fetch("http://127.0.0.1:5000/auth/user", {
@@ -34,20 +35,21 @@ export function Navbaruser() {
           },
         });
 
-        console.log("Respuesta del servidor:", response); // Opción 1: Verifica la respuesta del servidor
-
         const data = await response.json();
-        console.log("Datos recibidos del servidor:", data); // Opción 3: Verifica la estructura de la respuesta del servidor
 
         if (response.ok) {
+          setUserFullName(data.full_name); // Almacenar el nombre completo del usuario
+          setUserEmail(data.email); // Almacenar el correo del usuario
+          setUserId(data.id); // Almacenar el ID del usuario
+          console.log("Nombre completo del usuario:", data.full_name);
           console.log("Correo del usuario:", data.email);
-          setUserEmail(data.email);
+          console.log("ID del usuario:", data.id); // Mostrar el ID del usuario en la consola
         } else {
           console.error(data.message);
         }
       }
     } catch (error) {
-      console.error("Error al obtener el correo del usuario:", error); // Opción 4: Verifica el manejo de errores
+      console.error("Error al obtener los datos del usuario:", error);
     }
   };
 
@@ -92,7 +94,7 @@ export function Navbaruser() {
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="#" className="text-[#4a53a0] font-semibld">
+          <Link href="/todostickets" className="text-[#4a53a0] font-semibld">
             Todos los Casos
           </Link>
         </NavbarItem>
@@ -116,9 +118,11 @@ export function Navbaruser() {
           >
             <DropdownItem key="profile" className="h-14 gap-2">
               <p className="font-semibold">Registrado como</p>
-              <p className="font-semibold">{userEmail}</p>{" "}
+              <p className="font-semibold">{userFullName}</p>{" "}
+              <p className="text-gray-500">{userEmail}</p>{" "}
               {/* Mostrar el correo del usuario */}
             </DropdownItem>
+
             <DropdownItem key="settings">Mi configuracion</DropdownItem>
             <DropdownItem key="team_settings">
               Configuracion de equipo

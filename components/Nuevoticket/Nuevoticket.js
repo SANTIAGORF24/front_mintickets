@@ -10,6 +10,7 @@ export function Nuevoticket() {
   const [statuses, setStatuses] = useState([]);
   const [terceros, setTerceros] = useState([]);
   const [users, setUsers] = useState([]);
+  const [ticketCreated, setTicketCreated] = useState(false);
 
   // Llamadas a la API para obtener los datos iniciales
   useEffect(() => {
@@ -79,6 +80,10 @@ export function Nuevoticket() {
         ticketData
       );
       console.log("Ticket creado:", response.data);
+      setTicketCreated(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000); // Recargar la página después de 3 segundos
     } catch (error) {
       console.error("Error al crear el ticket:", error);
     }
@@ -141,6 +146,11 @@ export function Nuevoticket() {
               />
             </div>
           </div>
+          {ticketCreated && (
+            <div className="text-green-600 font-bold text-center">
+              Caso creado
+            </div>
+          )}
           <Button
             className="w-full  bg-[#4a53a0]"
             color="primary"
