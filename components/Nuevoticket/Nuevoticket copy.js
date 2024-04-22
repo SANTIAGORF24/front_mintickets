@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Autocomplete, AutocompleteItem, Button } from "@nextui-org/react";
 import axios from "axios";
+import { Button } from "@nextui-org/react";
+import Autocomplete from "./Autocomplete"; // Importa el componente Autocomplete personalizado
 
 export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
@@ -9,36 +10,49 @@ export function Nuevoticket() {
   const [statuses, setStatuses] = useState([]);
   const [terceros, setTerceros] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(null); // Cambiado a null para evitar errores de inicialización
+  const [ticketCreated, setTicketCreated] = useState(false);
+
+  // Llamadas a la API para obtener los datos iniciales
+  useEffect(() => {
+    // Función para obtener los datos de la API y establecer los estados correspondientes
+    const fetchData = async () => {
+      try {
+        const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
+        setTopics(topicsResponse.data.topics);
+
+        const statusesResponse = await axios.get(
+          "http://127.0.0.1:5000/status"
+        );
+        setStatuses(statusesResponse.data.status);
+
+        const tercerosResponse = await axios.get(
+          "http://127.0.0.1:5000/terceros"
+        );
+        setTerceros(tercerosResponse.data.terceros);
+
+        const usersResponse = await axios.get(
+          "http://127.0.0.1:5000/auth/users/names"
+        );
+        setUsers(usersResponse.data.user_names);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    // Llamada a la función para obtener los datos
+    fetchData();
+  }, []);
+
+  // Manejadores de estado para los valores seleccionados
+  const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [selectedTercero, setSelectedTercero] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  useEffect(() => {
-    axios
-      .get("http://127.0.0.1:5000/topics")
-      .then((response) => setTopics(response.data.topics))
-      .catch((error) => console.error("Error fetching topics:", error));
-
-    axios
-      .get("http://127.0.0.1:5000/status")
-      .then((response) => setStatuses(response.data.status))
-      .catch((error) => console.error("Error fetching statuses:", error));
-
-    axios
-      .get("http://127.0.0.1:5000/terceros")
-      .then((response) => setTerceros(response.data.terceros))
-      .catch((error) => console.error("Error fetching terceros:", error));
-
-    axios
-      .get("http://127.0.0.1:5000/auth/users/names")
-      .then((response) => setUsers(response.data.user_names))
-      .catch((error) => console.error("Error fetching user names:", error));
-  }, []);
-
+  // Lógica para manejar la presentación y envío del formulario
   const handleSubmit = async () => {
     try {
-      // Validar que se hayan seleccionado valores en los Autocompletes
+      // Validación de que se hayan seleccionado todos los campos
       if (
         !selectedTopic ||
         !selectedStatus ||
@@ -46,23 +60,30 @@ export function Nuevoticket() {
         !selectedUser
       ) {
         console.error("Por favor, selecciona valores en todos los campos.");
-        return; // Detener la ejecución si faltan datos
+        return;
       }
 
-      // Enviar la solicitud POST con los datos completos
+      // Crear los datos de envío del ticket usando los valores seleccionados
+      const ticketData = {
+        fecha_creacion: new Date().toISOString(),
+        tema: selectedTopic.name,
+        estado: selectedStatus.name,
+        tercero_nombre: selectedTercero.name,
+        especialista_nombre: selectedUser.name,
+        descripcion_caso: descripcionValue,
+        solucion_caso: solucionValue,
+      };
+
+      // Enviar los datos del ticket a tu API backend para su registro
       const response = await axios.post(
         "http://127.0.0.1:5000/tickets/register",
-        {
-          fecha_creacion: new Date().toISOString(),
-          tema: selectedTopic.name,
-          estado: selectedStatus.name,
-          tercero_nombre: selectedTercero.name,
-          especialista_nombre: selectedUser.name,
-          descripcion_caso: descripcionValue,
-          solucion_caso: solucionValue,
-        }
+        ticketData
       );
       console.log("Ticket creado:", response.data);
+      setTicketCreated(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000); // Recargar la página después de 3 segundos
     } catch (error) {
       console.error("Error al crear el ticket:", error);
     }
@@ -78,82 +99,38 @@ export function Nuevoticket() {
             </h2>
           </div>
           <div className="flex space-x-10 items-center justify-center h-full py-10">
-            <div className="flex flex-col space-y-4 w-2/6">
-              <div>
-                <div className="max-w-xs mb-4">
-                  <Autocomplete
-                    defaultItems={topics}
-                    label="Tema"
-                    placeholder="Seleccionar"
-                    onChange={(value) => setSelectedTopic(value)}
-                  >
-                    {(topic) => (
-                      <AutocompleteItem className="text-black" key={topic.id}>
-                        {topic.name}
-                      </AutocompleteItem>
-                    )}
-                  </Autocomplete>
-                </div>
-
-                <div className="max-w-xs mb-4">
-                  <Autocomplete
-                    defaultItems={statuses}
-                    label="Estado del ticket"
-                    placeholder="Selecciona un estado del ticket"
-                    onChange={(value) => setSelectedStatus(value)}
-                  >
-                    {(status) => (
-                      <AutocompleteItem className="text-black" key={status.id}>
-                        {status.name}
-                      </AutocompleteItem>
-                    )}
-                  </Autocomplete>
-                </div>
-
-                <div className="max-w-xs mb-4">
-                  <Autocomplete
-                    defaultItems={terceros}
-                    label="Seleccionar Tercero"
-                    placeholder="Seleccionar"
-                    onChange={(value) => setSelectedTercero(value)}
-                  >
-                    {(tercero) => (
-                      <AutocompleteItem className="text-black" key={tercero.id}>
-                        {tercero.name}
-                      </AutocompleteItem>
-                    )}
-                  </Autocomplete>
-                </div>
-
-                <div className="max-w-xs">
-                  <Autocomplete
-                    defaultItems={users}
-                    label="Especialista"
-                    placeholder="Selecciona un Especialista"
-                    onChange={(value) => setSelectedUser(value)}
-                  >
-                    {(user) => (
-                      <AutocompleteItem className="text-black" key={user.id}>
-                        {user.name}
-                      </AutocompleteItem>
-                    )}
-                  </Autocomplete>
-                </div>
-              </div>
-              <Button
-                className="w-4/6 bg-[#4a53a0]"
-                color="primary"
-                onClick={handleSubmit}
-              >
-                Crear Ticket
-              </Button>
+            <div className="flex flex-col space-y-7 w-2/6">
+              <Autocomplete
+                items={topics}
+                label="Tema"
+                placeholder="Seleccionar tema"
+                onSelect={(value) => setSelectedTopic(value)}
+              />
+              <Autocomplete
+                items={statuses}
+                label="Estado del ticket"
+                placeholder="Selecciona un estado del ticket"
+                onSelect={(value) => setSelectedStatus(value)}
+              />
+              <Autocomplete
+                items={terceros}
+                label="Seleccionar tercero"
+                placeholder="Seleccionar tercero"
+                onSelect={(value) => setSelectedTercero(value)}
+              />
+              <Autocomplete
+                items={users}
+                label="Especialista"
+                placeholder="Selecciona un Especialista"
+                onSelect={(value) => setSelectedUser(value)}
+              />
             </div>
             <div className="w-4/6">
-              <p className="text-[#4a53a0] font-bold text-xl">
+              <p className="text-[#4a53a0] font-bold text-xl ">
                 Descripcion del caso:
               </p>
               <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black"
+                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-slate-100"
                 value={descripcionValue}
                 onChange={(e) => setDescripcionValue(e.target.value)}
                 placeholder="Descripcion del caso"
@@ -162,13 +139,25 @@ export function Nuevoticket() {
                 Solucion al caso:
               </p>
               <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black"
+                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-slate-100"
                 value={solucionValue}
                 onChange={(e) => setSolucionValue(e.target.value)}
                 placeholder="Solucion al caso"
               />
             </div>
           </div>
+          {ticketCreated && (
+            <div className="text-green-600 font-bold text-center">
+              Caso creado
+            </div>
+          )}
+          <Button
+            className="w-full  bg-[#4a53a0]"
+            color="primary"
+            onClick={handleSubmit}
+          >
+            Crear Ticket
+          </Button>
         </div>
       </div>
     </>

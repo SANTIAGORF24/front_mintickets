@@ -308,10 +308,10 @@ export function Todostickets() {
             <label>
               Rows por pagina:
               <select value={rowsPerPage} onChange={handleRowsPerPageChange}>
-                <option value="20">20</option>
+                <option value="5">5</option>
+                <option value="todos">Todos</option>
                 <option value="30">30</option>
                 <option value="45">45</option>
-                <option value="todos">Todos</option>
               </select>
             </label>
 
