@@ -204,7 +204,10 @@ export function Todostickets() {
         ticket.descripcion_caso
           .toLowerCase()
           .includes(filterValue.toLowerCase()) ||
-        ticket.solucion_caso.toLowerCase().includes(filterValue.toLowerCase()))
+        (ticket.solucion_caso &&
+          ticket.solucion_caso
+            .toLowerCase()
+            .includes(filterValue.toLowerCase()))) // Verificación de solucion_caso
     );
   });
 
