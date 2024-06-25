@@ -29,7 +29,11 @@ export function Nuevoticket() {
         const statusesResponse = await axios.get(
           "http://127.0.0.1:5000/status"
         );
-        setStatuses(statusesResponse.data.status);
+        // Filtrar las opciones de estado para excluir "Solucionado"
+        const filteredStatuses = statusesResponse.data.status.filter(
+          (status) => status.name !== "Solucionado"
+        );
+        setStatuses(filteredStatuses);
 
         const tercerosResponse = await axios.get(
           "http://127.0.0.1:5000/terceros"
@@ -199,6 +203,7 @@ export function Nuevoticket() {
                 value={solucionValue}
                 onChange={(e) => setSolucionValue(e.target.value)}
                 placeholder="Solucion al caso"
+                disabled
               />
             </div>
           </div>
