@@ -12,9 +12,14 @@ export function Nuevoticket() {
   const [users, setUsers] = useState([]);
   const [ticketCreated, setTicketCreated] = useState(false);
 
-  // Llamadas a la API para obtener los datos iniciales
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selectedTercero, setSelectedTercero] = useState(null);
+  const [selectedTerceroEmail, setSelectedTerceroEmail] = useState(null); // Nuevo estado para el correo del tercero
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserEmail, setSelectedUserEmail] = useState(null); // Nuevo estado para el correo del usuario
+
   useEffect(() => {
-    // Función para obtener los datos de la API y establecer los estados correspondientes
     const fetchData = async () => {
       try {
         const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
@@ -39,20 +44,11 @@ export function Nuevoticket() {
       }
     };
 
-    // Llamada a la función para obtener los datos
     fetchData();
   }, []);
 
-  // Manejadores de estado para los valores seleccionados
-  const [selectedTopic, setSelectedTopic] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(null);
-  const [selectedTercero, setSelectedTercero] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
-
-  // Lógica para manejar la presentación y envío del formulario
   const handleSubmit = async () => {
     try {
-      // Validación de que se hayan seleccionado todos los campos
       if (
         !selectedTopic ||
         !selectedStatus ||
@@ -63,7 +59,6 @@ export function Nuevoticket() {
         return;
       }
 
-      // Crear los datos de envío del ticket usando los valores seleccionados
       const ticketData = {
         fecha_creacion: new Date().toISOString(),
         tema: selectedTopic.name,
@@ -74,7 +69,6 @@ export function Nuevoticket() {
         solucion_caso: solucionValue,
       };
 
-      // Enviar los datos del ticket a tu API backend para su registro
       const response = await axios.post(
         "http://127.0.0.1:5000/tickets/register",
         ticketData
@@ -83,7 +77,7 @@ export function Nuevoticket() {
       setTicketCreated(true);
       setTimeout(() => {
         window.location.reload();
-      }, 2000); // Recargar la página después de 3 segundos
+      }, 2000);
     } catch (error) {
       console.error("Error al crear el ticket:", error);
     }
@@ -116,14 +110,30 @@ export function Nuevoticket() {
                 items={terceros}
                 label="Seleccionar tercero"
                 placeholder="Seleccionar tercero"
-                onSelect={(value) => setSelectedTercero(value)}
+                onSelect={(value) => {
+                  setSelectedTercero(value);
+                  setSelectedTerceroEmail(value.email); // Establecer el correo del tercero seleccionado
+                }}
               />
+              {selectedTerceroEmail && (
+                <h3 className="text-[#4a53a0] text-lg mt-2">
+                  Correo: {selectedTerceroEmail}
+                </h3>
+              )}
               <Autocomplete
                 items={users}
                 label="Especialista"
                 placeholder="Selecciona un Especialista"
-                onSelect={(value) => setSelectedUser(value)}
+                onSelect={(value) => {
+                  setSelectedUser(value);
+                  setSelectedUserEmail(value.email); // Establecer el correo del usuario seleccionado
+                }}
               />
+              {selectedUserEmail && (
+                <h3 className="text-[#4a53a0] text-lg mt-2">
+                  Correo: {selectedUserEmail}
+                </h3>
+              )}
             </div>
             <div className="w-4/6">
               <p className="text-[#4a53a0] font-bold text-xl ">
