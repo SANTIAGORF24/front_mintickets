@@ -123,6 +123,9 @@ export function Editarticket({ ticketData }) {
       );
       console.log("Ticket solucionado:", response.data);
 
+      // Generar enlace de encuesta
+      const encuestaLink = `http://localhost:3000/encuesta?id=${ticketDataToUpdate.id}`;
+
       // Enviar correo electrónico
       const emailParams = {
         to_email: selectedTerceroEmail,
@@ -131,6 +134,7 @@ export function Editarticket({ ticketData }) {
         tema: ticketDataToUpdate.tema,
         message: ticketDataToUpdate.descripcion_caso,
         message_solucion: ticketDataToUpdate.solucion_caso,
+        encuesta: encuestaLink,
       };
 
       await emailjs.send(
@@ -245,22 +249,15 @@ export function Editarticket({ ticketData }) {
             </div>
           </ModalBody>
           <ModalFooter>
-            {isUpdated && (
-              <div className="text-green-600 font-bold text-center">
-                Ticket actualizado
-              </div>
-            )}
             <Button color="danger" variant="light" onPress={closeModal}>
-              Cerrar
+              Cancelar
             </Button>
             <Button color="primary" onPress={handleSubmit}>
-              Actualizar
+              Guardar
             </Button>
-            {ticketData.estado === "En proceso" && (
-              <Button color="success" onPress={handleFinalize}>
-                Finalizar
-              </Button>
-            )}
+            <Button color="success" onPress={handleFinalize}>
+              Finalizar
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
