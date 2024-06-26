@@ -13,6 +13,8 @@ export default function Home({ searchParams }) {
     question2: 0,
     question3: 0,
   });
+  const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -42,15 +44,24 @@ export default function Home({ searchParams }) {
   };
 
   const handleSubmit = () => {
-    console.log(ratings);
-    // Ejemplo de cómo podrías enviar los datos:
-    // axios.post(`http://localhost:5000/tickets/${id}/rate`, ratings)
-    //   .then(response => {
-    //     console.log("Calificación enviada con éxito");
-    //   })
-    //   .catch(error => {
-    //     console.error("Error al enviar la calificación:", error);
-    //   });
+    axios
+      .post(`http://localhost:5000/tickets/${id}/rate`, {
+        tiempo_de_respuesta: ratings.question1,
+        actitud: ratings.question2,
+        respuesta: ratings.question3,
+      })
+      .then((response) => {
+        setMessage(
+          "Muchas gracias por llenar la encuesta para poder mejorar en nuestros servicios."
+        );
+        setMessageType("success");
+      })
+      .catch((error) => {
+        setMessage(
+          "Error al enviar la encuesta. Por favor, intente más tarde."
+        );
+        setMessageType("error");
+      });
   };
 
   if (loading) {
@@ -67,22 +78,30 @@ export default function Home({ searchParams }) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-6 bg-white text-black rounded-lg shadow-lg w-full max-w-md">
+      <div className="p-6 bg-white text-black rounded-lg shadow-lg w-5/6">
         <div className="mb-8 text-center">
-          <h2 className="text-xl font-bold mb-4">TEMA: {ticket.tema}</h2>
-          <h2 className="text-xl font-bold mb-4">
-            Especialista: {ticket.especialista_nombre}
-          </h2>
-          <h2 className="text-xl font-bold mb-4">
-            Descripción del caso: {ticket.descripcion_caso}
-          </h2>
-          <h2 className="text-xl font-bold mb-4">
-            Solución: {ticket.solucion_caso}
-          </h2>
-          <h2 className="text-xl font-bold mb-4">
+          <h2 className="text-xl font-bold mb-4">TEMA: </h2>
+          <p>{ticket.tema}</p>
+          <h2 className="text-xl font-bold mb-4">Especialista:</h2>
+          <p>{ticket.especialista_nombre}</p>
+          <h2 className="text-xl font-bold mb-4">Descripción del caso:</h2>
+          <p>{ticket.descripcion_caso}</p>
+          <h2 className="text-xl font-bold mb-4">Solución:</h2>
+          <p>{ticket.solucion_caso}</p>
+          <h2 className="text-xl font-bold mb-4 pt-8">
             SEGÚN SU RESPUESTA CALIFIQUE LO SIGUIENTE:
           </h2>
         </div>
+
+        {message && (
+          <div
+            className={`text-center mb-4 ${
+              messageType === "success" ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {message}
+          </div>
+        )}
 
         <div className="text-center">
           <div>
