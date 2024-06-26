@@ -49,26 +49,6 @@ export function Login() {
     <>
       <div className="w-full h-svh flex items-center justify-center ">
         <div className="w-5/6 h-[80%] sm:h-[90%] rounded-lg border-2">
-          <div className="p-3 h-[10%]">
-            <div className="flex space-x-10">
-              <Image
-                src="/assets/img/Colombia.png"
-                className="w-100"
-                width={120}
-                height={120}
-                style={{ width: "auto", height: "auto" }} // Agrega estos estilos
-                alt="logo"
-              />
-              <Image
-                src="/assets/img/mind.png"
-                className="w-100"
-                width={120}
-                height={120}
-                style={{ width: "auto", height: "auto" }} // Agrega estos estilos
-                alt="logo"
-              />
-            </div>
-          </div>
           <div className="flex items-center justify-center h-[90%]">
             <div className="w-5/6 h-full flex items-center justify-center">
               <div className="flex flex-col justify-between h-[50%] w-full">

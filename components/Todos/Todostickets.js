@@ -36,7 +36,10 @@ const columns = [
   { uid: "especialista_nombre", name: "Especialista" },
   { uid: "descripcion_caso", name: "Descripción del Caso" },
   { uid: "solucion_caso", name: "Solución del Caso" },
-  { uid: "actions", name: "Acciones" }, // Nueva columna de acciones
+  { uid: "tiempo_de_respuesta", name: "Tiempo de Respuesta" },
+  { uid: "actitud", name: "Actitud" },
+  { uid: "respuesta", name: "Respuesta" },
+  { uid: "actions", name: "Acciones" },
 ];
 
 export function Todostickets() {
@@ -154,7 +157,19 @@ export function Todostickets() {
             .includes(filterValue.toLowerCase()) ||
           ticket.solucion_caso
             .toLowerCase()
-            .includes(filterValue.toLowerCase()))
+            .includes(filterValue.toLowerCase()) ||
+          ticket.tiempo_de_respuesta
+            ?.toString()
+            .toLowerCase()
+            .includes(filterValue.toLowerCase()) || // New column filter
+          ticket.actitud
+            ?.toString()
+            .toLowerCase()
+            .includes(filterValue.toLowerCase()) || // New column filter
+          ticket.respuesta
+            ?.toString()
+            .toLowerCase()
+            .includes(filterValue.toLowerCase())) // New column filter
       );
     });
 
@@ -164,15 +179,20 @@ export function Todostickets() {
       fecha_finalizacion: ticket.fecha_finalizacion,
       tema: ticket.tema,
       estado: ticket.estado,
-      tercero: ticket.tercero_nombre,
-      especialista: ticket.especialista_nombre,
+      tercero_nombre: ticket.tercero_nombre,
+      especialista_nombre: ticket.especialista_nombre,
       descripcion_caso: ticket.descripcion_caso,
       solucion_caso: ticket.solucion_caso,
+      tiempo_de_respuesta: ticket.tiempo_de_respuesta || "", // New column, handle undefined or null
+      actitud: ticket.actitud || "", // New column, handle undefined or null
+      respuesta: ticket.respuesta || "", // New column, handle undefined or null
     }));
 
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(orderedTickets);
+    const worksheet = XLSX.utils.json_to_sheet(orderedTickets, {
+      header: columns.map((column) => column.name),
+    });
 
+    const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Tickets");
 
     XLSX.writeFile(workbook, "tickets.xlsx");
@@ -207,7 +227,19 @@ export function Todostickets() {
         (ticket.solucion_caso &&
           ticket.solucion_caso
             .toLowerCase()
-            .includes(filterValue.toLowerCase()))) // Verificación de solucion_caso
+            .includes(filterValue.toLowerCase())) ||
+        ticket.tiempo_de_respuesta
+          ?.toString()
+          .toLowerCase()
+          .includes(filterValue.toLowerCase()) || // New column filter
+        ticket.actitud
+          ?.toString()
+          .toLowerCase()
+          .includes(filterValue.toLowerCase()) || // New column filter
+        ticket.respuesta
+          ?.toString()
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())) // New column filter
     );
   });
 
@@ -219,7 +251,7 @@ export function Todostickets() {
   return (
     <div className="w-full">
       <div>
-        <div className="flex justify-between items-center gap-3 mb-4">
+        <div className="flex justify-between items-center gap-3 mb-4 text-black">
           <Input
             className="w-[44%]"
             placeholder="Search..."
@@ -228,117 +260,83 @@ export function Todostickets() {
             isClearable
             onClear={handleClearSearch}
           />
-          <div className="text-black">
-            <div className="flex items-center justify-center space-x-3">
-              <div className="text-black border-black">
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => setStartDate(date)}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  placeholderText="Fecha de inicio"
-                  className="bg-slate-100 p-3 rounded-lg"
-                />
-              </div>
-              <div className="text-black border-black">
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate}
-                  placeholderText="Fecha de fin"
-                  className="bg-slate-100 p-3 rounded-lg"
-                />
-              </div>
-              <div>
-                <Button
-                  variant="text"
-                  onClick={clearFilters}
-                  className="bg-rose-400 text-white"
-                >
-                  Limpiar Filtro
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <Button color="primary" variant="flat" onClick={downloadExcel}>
-              Descargar Excel
-            </Button>
-          </div>
-        </div>
-        <Table
-          aria-label="Tabla de Tickets"
-          isHeaderSticky
-          selectedKeys={[]}
-          selectionMode="multiple"
-          style={{ color: "black" }}
-        >
-          <TableHeader>{headerColumns}</TableHeader>
-          <TableBody
-            emptyContent={"No se encontraron tickets"}
-            items={paginatedTickets}
-          >
-            {(ticket) => (
-              <TableRow key={ticket.id}>
-                <TableCell>{ticket.id}</TableCell>
-                <TableCell>{formatDate(ticket.fecha_creacion)}</TableCell>
-                <TableCell>{formatDate(ticket.fecha_finalizacion)}</TableCell>
-                <TableCell>{ticket.tema}</TableCell>
-                <TableCell>
-                  <Chip
-                    color={statusColorMap[ticket.estado]}
-                    size="sm"
-                    variant="flat"
-                  >
-                    {capitalize(ticket.estado)}
-                  </Chip>
-                </TableCell>
-                <TableCell>{ticket.tercero_nombre}</TableCell>
-                <TableCell>{ticket.especialista_nombre}</TableCell>
-                <TableCell>{ticket.descripcion_caso}</TableCell>
-                <TableCell>{ticket.solucion_caso}</TableCell>
-                <TableCell>{renderActions(ticket)}</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <div className="flex justify-between items-center mt-4 text-black">
-          <div>
-            <label>
-              Rows por pagina:
-              <select value={rowsPerPage} onChange={handleRowsPerPageChange}>
-                <option value="5">5</option>
-                <option value="todos">Todos</option>
-                <option value="30">30</option>
-                <option value="45">45</option>
-              </select>
-            </label>
-
-            <Pagination
-              total={Math.ceil(filteredTickets.length / rowsPerPage)}
-              current={page}
-              onChange={setPage}
-            />
-          </div>
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            placeholderText="Fecha de inicio"
+            className="rounded-md border border-gray-300 p-2 text-black"
+            dateFormat="yyyy-MM-dd"
+          />
+          <DatePicker
+            selected={endDate}
+            onChange={(date) => setEndDate(date)}
+            placeholderText="Fecha de fin"
+            className="rounded-md border border-gray-300 p-2"
+            dateFormat="yyyy-MM-dd"
+          />
+          <Button color="primary" onClick={clearFilters}>
+            Limpiar filtros
+          </Button>
+          <Button color="secondary" onClick={downloadExcel}>
+            Descargar Excel
+          </Button>
         </div>
       </div>
-      {/* Aquí se incluye el Modal con la descripción del ticket */}
-      <TicketModal
-        isOpen={selectedTicketId !== ""}
-        onClose={() => setSelectedTicketId("")}
-        description={selectedTicketDescription}
+      <Table className="text-black">
+        <TableHeader>{headerColumns}</TableHeader>
+        <TableBody>
+          {paginatedTickets.map((ticket) => (
+            <TableRow key={ticket.id}>
+              <TableCell>{ticket.id}</TableCell>
+              <TableCell>{formatDate(ticket.fecha_creacion)}</TableCell>
+              <TableCell>{formatDate(ticket.fecha_finalizacion)}</TableCell>
+              <TableCell>{ticket.tema}</TableCell>
+              <TableCell>
+                <Chip
+                  color={statusColorMap[ticket.estado]}
+                  size="sm"
+                  variant="flat"
+                >
+                  {capitalize(ticket.estado)}
+                </Chip>
+              </TableCell>
+              <TableCell>{ticket.tercero_nombre}</TableCell>
+              <TableCell>{ticket.especialista_nombre}</TableCell>
+              <TableCell>{ticket.descripcion_caso}</TableCell>
+              <TableCell>{ticket.solucion_caso}</TableCell>
+              <TableCell>{ticket.tiempo_de_respuesta}</TableCell>
+              <TableCell>{ticket.actitud}</TableCell>
+              <TableCell>{ticket.respuesta}</TableCell>
+              <TableCell>{renderActions(ticket)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Pagination
+        total={Math.ceil(filteredTickets.length / rowsPerPage)}
+        initialPage={1}
+        page={page}
+        onChange={(page) => setPage(page)}
       />
+      <div className="mt-4 text-black">
+        <label className="mr-2">Filas por página:</label>
+        <select
+          value={rowsPerPage}
+          onChange={handleRowsPerPageChange}
+          className="p-1 border rounded"
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={15}>15</option>
+          <option value={20}>20</option>
+          <option value={filteredTickets.length}>Todos</option>
+        </select>
+      </div>
     </div>
   );
 }
 
 const formatDate = (dateString) => {
-  if (!dateString) return ""; // Verifica si dateString es null o undefined
-
-  // Ajusta el formato según el de tu base de datos
-  return dateString.split(" ")[0]; // Toma solo la parte de la fecha
+  const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+  return new Date(dateString).toLocaleDateString(undefined, options);
 };

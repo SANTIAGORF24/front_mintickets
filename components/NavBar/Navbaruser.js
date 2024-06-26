@@ -64,37 +64,32 @@ export function Navbaruser() {
       <NavbarBrand>
         <div className="flex space-x-10">
           <Image
-            src="/assets/img/Colombia.png"
-            className="w-100"
-            width={120}
-            height={120}
-            style={{ width: "auto", height: "auto" }} // Agrega estos estilos
-            alt="logo"
-          />
-          <Image
-            src="/assets/img/mind.png"
-            className="w-100"
-            width={120}
-            height={120}
+            src="/assets/img/avatar.png"
+            className="w-50"
+            width={60}
+            height={60}
             style={{ width: "auto", height: "auto" }} // Agrega estos estilos
             alt="logo"
           />
         </div>
       </NavbarBrand>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
+      <NavbarContent
+        className="hidden sm:flex gap-4 space-x-20"
+        justify="center"
+      >
         <NavbarItem>
-          <Link href="/ticket" className="text-[#4a53a0] font-semibld">
+          <Link href="/ticket" className="text-[#4a53a0] font-bold">
             Mis tickets
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="/nuevoticket" className="text-[#4a53a0] font-semibld">
+          <Link href="/nuevoticket" className="text-[#4a53a0] font-bold">
             Nuevo ticket
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="/todostickets" className="text-[#4a53a0] font-semibld">
+          <Link href="/todostickets" className="text-[#4a53a0] font-bold">
             Todos los tickets
           </Link>
         </NavbarItem>
