@@ -46,10 +46,7 @@ export function Editarticket({ ticketData }) {
         const statusesResponse = await axios.get(
           "http://127.0.0.1:5000/status"
         );
-        const filteredStatuses = statusesResponse.data.status.filter(
-          (status) => status.name !== "Solucionado"
-        );
-        setStatuses(filteredStatuses);
+        setStatuses(statusesResponse.data.status);
 
         const tercerosResponse = await axios.get(
           "http://127.0.0.1:5000/terceros"
@@ -187,7 +184,9 @@ export function Editarticket({ ticketData }) {
                 defaultValue={ticketData ? ticketData.tema : ""}
               />
               <Autocomplete
-                items={statuses}
+                items={statuses.filter(
+                  (status) => status.name !== "Solucionado"
+                )}
                 label="Estado del ticket"
                 placeholder="Selecciona un estado del ticket"
                 onSelect={(value) => setSelectedStatus(value)}
