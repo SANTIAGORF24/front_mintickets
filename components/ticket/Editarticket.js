@@ -10,6 +10,7 @@ import {
 } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
 import { EditIcon } from "./Iconsactions";
+import emailjs from "emailjs-com";
 
 export function Editarticket({ ticketData }) {
   const [descripcionValue, setDescripcionValue] = useState(
@@ -25,6 +26,17 @@ export function Editarticket({ ticketData }) {
   const [isUpdated, setIsUpdated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selectedTercero, setSelectedTercero] = useState(null);
+  const [selectedTerceroEmail, setSelectedTerceroEmail] = useState(
+    ticketData ? ticketData.tercero_email : null
+  );
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserEmail, setSelectedUserEmail] = useState(
+    ticketData ? ticketData.especialista_email : null
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -34,7 +46,10 @@ export function Editarticket({ ticketData }) {
         const statusesResponse = await axios.get(
           "http://127.0.0.1:5000/status"
         );
-        setStatuses(statusesResponse.data.status);
+        const filteredStatuses = statusesResponse.data.status.filter(
+          (status) => status.name !== "Solucionado"
+        );
+        setStatuses(filteredStatuses);
 
         const tercerosResponse = await axios.get(
           "http://127.0.0.1:5000/terceros"
@@ -52,11 +67,6 @@ export function Editarticket({ ticketData }) {
 
     fetchData();
   }, []);
-
-  const [selectedTopic, setSelectedTopic] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(null);
-  const [selectedTercero, setSelectedTercero] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
 
   const handleSubmit = async () => {
     try {
@@ -92,6 +102,60 @@ export function Editarticket({ ticketData }) {
     }
   };
 
+  const handleFinalize = async () => {
+    try {
+      const ticketDataToUpdate = {
+        id: ticketData.id,
+        fecha_creacion: ticketData.fecha_creacion,
+        fecha_finalizacion: new Date().toISOString(), // Actualizar la fecha de finalización
+        tema: selectedTopic ? selectedTopic.name : ticketData.tema,
+        estado: "Solucionado", // Cambiar el estado a Solucionado
+        tercero_nombre: selectedTercero
+          ? selectedTercero.name
+          : ticketData.tercero_nombre,
+        especialista_nombre: selectedUser
+          ? selectedUser.name
+          : ticketData.especialista_nombre,
+        descripcion_caso: descripcionValue,
+        solucion_caso: solucionValue,
+      };
+
+      const response = await axios.put(
+        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
+        ticketDataToUpdate
+      );
+      console.log("Ticket solucionado:", response.data);
+
+      // Enviar correo electrónico
+      const emailParams = {
+        to_email: selectedTerceroEmail,
+        tercero_nombre: ticketDataToUpdate.tercero_nombre,
+        to_name: ticketDataToUpdate.especialista_nombre,
+        tema: ticketDataToUpdate.tema,
+        message: ticketDataToUpdate.descripcion_caso,
+        message_solucion: ticketDataToUpdate.solucion_caso,
+      };
+
+      await emailjs.send(
+        "mintickets", // service ID
+        "template_7vwc2bg", // template ID
+        emailParams,
+        "v8J_dI_u1ZC3-Gp8l"
+      );
+
+      console.log("Correo enviado exitosamente");
+
+      setIsUpdated(true);
+      setTimeout(() => {
+        setIsUpdated(false);
+        setIsOpen(false); // Cerrar modal después de actualizar
+        window.location.reload();
+      }, 2000); // Ocultar mensaje después de 2 segundos y recargar la página
+    } catch (error) {
+      console.error("Error al finalizar el ticket:", error);
+    }
+  };
+
   const openModal = () => {
     setIsOpen(true);
   };
@@ -102,7 +166,7 @@ export function Editarticket({ ticketData }) {
 
   return (
     <>
-      <Button className="bg-trnasparent" onPress={openModal}>
+      <Button className="bg-transparent" onPress={openModal}>
         <span className="text-lg cursor-pointer active:opacity-50 text-blue-600">
           <EditIcon />
         </span>
@@ -133,16 +197,32 @@ export function Editarticket({ ticketData }) {
                 items={terceros}
                 label="Seleccionar tercero"
                 placeholder="Seleccionar tercero"
-                onSelect={(value) => setSelectedTercero(value)}
+                onSelect={(value) => {
+                  setSelectedTercero(value);
+                  setSelectedTerceroEmail(value.email);
+                }}
                 defaultValue={ticketData ? ticketData.tercero_nombre : ""}
               />
+              {selectedTerceroEmail && (
+                <h3 className="text-[#4a53a0] text-lg mt-2">
+                  Correo: {selectedTerceroEmail}
+                </h3>
+              )}
               <Autocomplete
                 items={users}
                 label="Especialista"
                 placeholder="Selecciona un Especialista"
-                onSelect={(value) => setSelectedUser(value)}
+                onSelect={(value) => {
+                  setSelectedUser(value);
+                  setSelectedUserEmail(value.email);
+                }}
                 defaultValue={ticketData ? ticketData.especialista_nombre : ""}
               />
+              {selectedUserEmail && (
+                <h3 className="text-[#4a53a0] text-lg mt-2">
+                  Correo: {selectedUserEmail}
+                </h3>
+              )}
             </div>
             <div>
               <p className="text-[#4a53a0] font-bold text-xl">
@@ -177,6 +257,11 @@ export function Editarticket({ ticketData }) {
             <Button color="primary" onPress={handleSubmit}>
               Actualizar
             </Button>
+            {ticketData.estado === "En proceso" && (
+              <Button color="success" onPress={handleFinalize}>
+                Finalizar
+              </Button>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>

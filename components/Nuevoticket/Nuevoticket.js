@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
-import emailjs from "emailjs-com"; // Importa EmailJS
+import emailjs from "emailjs-com";
 
 export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
@@ -29,7 +29,6 @@ export function Nuevoticket() {
         const statusesResponse = await axios.get(
           "http://127.0.0.1:5000/status"
         );
-        // Filtrar las opciones de estado para excluir "Solucionado"
         const filteredStatuses = statusesResponse.data.status.filter(
           (status) => status.name !== "Solucionado"
         );
@@ -103,7 +102,9 @@ export function Nuevoticket() {
         tema: selectedTopic.name,
         estado: selectedStatus.name,
         tercero_nombre: selectedTercero.name,
+        tercero_email: selectedTerceroEmail,
         especialista_nombre: selectedUser.name,
+        especialista_email: selectedUserEmail,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
       };
@@ -115,7 +116,6 @@ export function Nuevoticket() {
       console.log("Ticket creado:", response.data);
       setTicketCreated(true);
 
-      // Enviar correo electrónico
       sendEmail(
         selectedUserEmail,
         selectedTerceroEmail,
