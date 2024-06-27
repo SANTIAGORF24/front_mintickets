@@ -1,6 +1,7 @@
 "use client";
-import { Tickets } from "@/components/ticket/Tickets";
-import { Navbaruser } from "@/components/NavBar/Navbaruser";
+
+import { Navbaruser } from "../../components/NavBar/Navbaruser";
+import { Tickets } from "../../components/ticket/Tickets";
 export default function Home() {
   return (
     <>

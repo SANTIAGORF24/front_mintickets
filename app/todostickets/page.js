@@ -1,7 +1,7 @@
 "use client";
 
-import { Navbaruser } from "@/components/NavBar/Navbaruser";
-import { Todostickets } from "@/components/Todos/Todostickets";
+import { Navbaruser } from "../../components/NavBar/Navbaruser";
+import { Todostickets } from "../../components/Todos/Todostickets";
 export default function Home() {
   return (
     <>
