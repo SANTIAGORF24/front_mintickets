@@ -25,6 +25,9 @@ export function Editarticket({ ticketData }) {
   const [users, setUsers] = useState([]);
   const [isUpdated, setIsUpdated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [finalizeMessage, setFinalizeMessage] = useState("");
+  const [finalizeError, setFinalizeError] = useState("");
 
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -65,12 +68,21 @@ export function Editarticket({ ticketData }) {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (ticketData && ticketData.estado) {
+      const initialStatus = statuses.find(
+        (status) => status.name === ticketData.estado
+      );
+      setSelectedStatus(initialStatus || null);
+    }
+  }, [ticketData, statuses]);
+
   const handleSubmit = async () => {
     try {
       const ticketDataToUpdate = {
         id: ticketData.id,
         fecha_creacion: ticketData.fecha_creacion,
-        fecha_finalizacion: new Date().toISOString(), // Actualizar la fecha de finalización
+        fecha_finalizacion: new Date().toISOString(),
         tema: selectedTopic ? selectedTopic.name : ticketData.tema,
         estado: selectedStatus ? selectedStatus.name : ticketData.estado,
         tercero_nombre: selectedTercero
@@ -88,12 +100,13 @@ export function Editarticket({ ticketData }) {
         ticketDataToUpdate
       );
       console.log("Ticket actualizado:", response.data);
-      setIsUpdated(true);
+      setSuccessMessage("Tus cambios se han guardado.");
+
       setTimeout(() => {
-        setIsUpdated(false);
-        setIsOpen(false); // Cerrar modal después de actualizar
+        setSuccessMessage("");
+        setIsOpen(false);
         window.location.reload();
-      }, 2000); // Ocultar mensaje después de 2 segundos y recargar la página
+      }, 2000);
     } catch (error) {
       console.error("Error al actualizar el ticket:", error);
     }
@@ -101,57 +114,46 @@ export function Editarticket({ ticketData }) {
 
   const handleFinalize = async () => {
     try {
+      if (!solucionValue) {
+        setFinalizeError("Por favor, ingresa una solución al caso.");
+        return;
+      }
+
       const ticketDataToUpdate = {
         id: ticketData.id,
         fecha_creacion: ticketData.fecha_creacion,
-        fecha_finalizacion: new Date().toISOString(), // Actualizar la fecha de finalización
+        fecha_finalizacion: new Date().toISOString(),
         tema: selectedTopic ? selectedTopic.name : ticketData.tema,
-        estado: "Solucionado", // Cambiar el estado a Solucionado
+        estado: "Solucionado",
         tercero_nombre: selectedTercero
           ? selectedTercero.name
           : ticketData.tercero_nombre,
+        tercero_email: selectedTercero
+          ? selectedTercero.email
+          : ticketData.tercero_email,
         especialista_nombre: selectedUser
           ? selectedUser.name
           : ticketData.especialista_nombre,
+        especialista_email: selectedUser
+          ? selectedUser.email
+          : ticketData.especialista_email,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
       };
 
       const response = await axios.put(
-        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
+        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}/finalize`,
         ticketDataToUpdate
       );
       console.log("Ticket solucionado:", response.data);
 
-      // Generar enlace de encuesta
-      const encuestaLink = `http://localhost:3000/encuesta?id=${ticketDataToUpdate.id}`;
+      setFinalizeMessage("El ticket se ha finalizado.");
 
-      // Enviar correo electrónico
-      const emailParams = {
-        to_email: selectedTerceroEmail,
-        tercero_nombre: ticketDataToUpdate.tercero_nombre,
-        to_name: ticketDataToUpdate.especialista_nombre,
-        tema: ticketDataToUpdate.tema,
-        message: ticketDataToUpdate.descripcion_caso,
-        message_solucion: ticketDataToUpdate.solucion_caso,
-        encuesta: encuestaLink,
-      };
-
-      await emailjs.send(
-        "mintickets", // service ID
-        "template_7vwc2bg", // template ID
-        emailParams,
-        "v8J_dI_u1ZC3-Gp8l"
-      );
-
-      console.log("Correo enviado exitosamente");
-
-      setIsUpdated(true);
       setTimeout(() => {
-        setIsUpdated(false);
-        setIsOpen(false); // Cerrar modal después de actualizar
+        setFinalizeMessage("");
+        setIsOpen(false);
         window.location.reload();
-      }, 2000); // Ocultar mensaje después de 2 segundos y recargar la página
+      }, 2000);
     } catch (error) {
       console.error("Error al finalizar el ticket:", error);
     }
@@ -163,6 +165,49 @@ export function Editarticket({ ticketData }) {
 
   const closeModal = () => {
     setIsOpen(false);
+    setFinalizeError("");
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const ticketDataToUpdate = {
+        id: ticketData.id,
+        fecha_creacion: ticketData.fecha_creacion,
+        tema: selectedTopic ? selectedTopic.name : ticketData.tema,
+        estado: selectedStatus ? selectedStatus.name : ticketData.estado,
+        tercero_nombre: selectedTercero
+          ? selectedTercero.name
+          : ticketData.tercero_nombre,
+        tercero_email: selectedTercero
+          ? selectedTercero.email
+          : ticketData.tercero_email,
+        especialista_nombre: selectedUser
+          ? selectedUser.name
+          : ticketData.especialista_nombre,
+        especialista_email: selectedUser
+          ? selectedUser.email
+          : ticketData.especialista_email,
+        descripcion_caso: descripcionValue,
+        solucion_caso: solucionValue,
+      };
+
+      console.log("Datos a actualizar:", ticketDataToUpdate);
+
+      await axios.patch(
+        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
+        ticketDataToUpdate
+      );
+
+      setSuccessMessage("Tus cambios se han guardado.");
+
+      setTimeout(() => {
+        setSuccessMessage("");
+        setIsOpen(false);
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error("Error al actualizar el ticket:", error);
+    }
   };
 
   return (
@@ -252,13 +297,24 @@ export function Editarticket({ ticketData }) {
             <Button color="danger" variant="light" onPress={closeModal}>
               Cancelar
             </Button>
-            <Button color="primary" onPress={handleSubmit}>
+            <Button color="primary" onClick={handleUpdate}>
               Guardar
             </Button>
-            <Button color="success" onPress={handleFinalize}>
-              Finalizar
-            </Button>
+            {selectedStatus && selectedStatus.name === "En proceso" && (
+              <Button color="success" onPress={handleFinalize}>
+                Finalizar
+              </Button>
+            )}
           </ModalFooter>
+          {successMessage && (
+            <div className="text-green-600 text-center">{successMessage}</div>
+          )}
+          {finalizeMessage && (
+            <div className="text-green-600 text-center">{finalizeMessage}</div>
+          )}
+          {finalizeError && (
+            <div className="text-red-600 text-center">{finalizeError}</div>
+          )}
         </ModalContent>
       </Modal>
     </>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@nextui-org/react";
-import Autocomplete from "./Autocomplete"; // Importa el componente Autocomplete personalizado
+import Autocomplete from "./Autocomplete";
 
 export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
@@ -11,13 +11,14 @@ export function Nuevoticket() {
   const [terceros, setTerceros] = useState([]);
   const [users, setUsers] = useState([]);
   const [ticketCreated, setTicketCreated] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [selectedTercero, setSelectedTercero] = useState(null);
-  const [selectedTerceroEmail, setSelectedTerceroEmail] = useState(null); // Nuevo estado para el correo del tercero
+  const [selectedTerceroEmail, setSelectedTerceroEmail] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUserEmail, setSelectedUserEmail] = useState(null); // Nuevo estado para el correo del usuario
+  const [selectedUserEmail, setSelectedUserEmail] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,20 +65,32 @@ export function Nuevoticket() {
         tema: selectedTopic.name,
         estado: selectedStatus.name,
         tercero_nombre: selectedTercero.name,
+        tercero_email: selectedTerceroEmail,
         especialista_nombre: selectedUser.name,
+        especialista_email: selectedUserEmail,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
       };
+
+      console.log("Enviando datos del ticket:", ticketData);
 
       const response = await axios.post(
         "http://127.0.0.1:5000/tickets/register",
         ticketData
       );
-      console.log("Ticket creado:", response.data);
-      setTicketCreated(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      console.log(response.data);
+
+      if (response.status === 201) {
+        setTicketCreated(true);
+        if (response.data.message.includes("correo enviado")) {
+          setEmailSent(true);
+        } else {
+          console.warn("Ticket creado, pero fallo el envío del correo.");
+        }
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error al crear el ticket:", error);
     }
@@ -86,7 +99,7 @@ export function Nuevoticket() {
   return (
     <>
       <div className="flex items-center justify-center w-full py-10">
-        <div className="w-4/6 ">
+        <div className="w-4/6">
           <div className="w-full flex items-center justify-center">
             <h2 className="text-[#4a53a0] text-3xl font-bold text-center mb-4">
               Nuevo ticket
@@ -112,7 +125,7 @@ export function Nuevoticket() {
                 placeholder="Seleccionar tercero"
                 onSelect={(value) => {
                   setSelectedTercero(value);
-                  setSelectedTerceroEmail(value.email); // Establecer el correo del tercero seleccionado
+                  setSelectedTerceroEmail(value.email);
                 }}
               />
               {selectedTerceroEmail && (
@@ -126,7 +139,7 @@ export function Nuevoticket() {
                 placeholder="Selecciona un Especialista"
                 onSelect={(value) => {
                   setSelectedUser(value);
-                  setSelectedUserEmail(value.email); // Establecer el correo del usuario seleccionado
+                  setSelectedUserEmail(value.email);
                 }}
               />
               {selectedUserEmail && (
@@ -136,7 +149,7 @@ export function Nuevoticket() {
               )}
             </div>
             <div className="w-4/6">
-              <p className="text-[#4a53a0] font-bold text-xl ">
+              <p className="text-[#4a53a0] font-bold text-xl">
                 Descripcion del caso:
               </p>
               <textarea
@@ -161,13 +174,23 @@ export function Nuevoticket() {
               Caso creado
             </div>
           )}
-          <Button
-            className="w-full  bg-[#4a53a0]"
-            color="primary"
-            onClick={handleSubmit}
-          >
-            Crear Ticket
-          </Button>
+          {emailSent ? (
+            <div className="text-green-600 font-bold text-center">
+              Correo enviado
+            </div>
+          ) : ticketCreated ? (
+            <div className="text-red-600 font-bold text-center">
+              Fallo el envío del correo
+            </div>
+          ) : null}
+          <div className="flex items-center justify-center">
+            <Button
+              onClick={handleSubmit}
+              className="self-center bg-[#4a53a0] text-white w-48 h-12 text-xl rounded-2xl hover:shadow-lg hover:bg-[#666eb5]"
+            >
+              Crear Ticket
+            </Button>
+          </div>
         </div>
       </div>
     </>

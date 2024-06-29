@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
-import emailjs from "emailjs-com";
 
 export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
@@ -51,40 +50,6 @@ export function Nuevoticket() {
     fetchData();
   }, []);
 
-  const sendEmail = (
-    toEmail,
-    ccEmail,
-    toName,
-    message,
-    terceroNombre,
-    tema
-  ) => {
-    const templateParams = {
-      to_name: toName,
-      to_email: toEmail,
-      cc_email: ccEmail,
-      message: message,
-      tercero_nombre: terceroNombre,
-      tema: tema,
-    };
-
-    emailjs
-      .send(
-        "mintickets",
-        "template_8ift73p",
-        templateParams,
-        "v8J_dI_u1ZC3-Gp8l"
-      )
-      .then(
-        (response) => {
-          console.log("SUCCESS!", response.status, response.text);
-        },
-        (error) => {
-          console.log("FAILED...", error);
-        }
-      );
-  };
-
   const handleSubmit = async () => {
     try {
       if (
@@ -116,14 +81,15 @@ export function Nuevoticket() {
       console.log("Ticket creado:", response.data);
       setTicketCreated(true);
 
-      sendEmail(
-        selectedUserEmail,
-        selectedTerceroEmail,
-        selectedUser.name,
-        descripcionValue,
-        selectedTercero.name,
-        selectedTopic.name
-      );
+      // Enviar correo a través del backend
+      await axios.post("http://127.0.0.1:5000/send-email", {
+        to_email: selectedUserEmail,
+        cc_email: selectedTerceroEmail,
+        to_name: selectedUser.name,
+        message: descripcionValue,
+        tercero_nombre: selectedTercero.name,
+        tema: selectedTopic.name,
+      });
 
       setTimeout(() => {
         window.location.reload();

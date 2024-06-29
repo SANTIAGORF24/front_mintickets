@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 export default function Home({ searchParams }) {
   const { id } = searchParams;
@@ -80,6 +81,14 @@ export default function Home({ searchParams }) {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="p-6 bg-white text-black rounded-lg shadow-lg w-5/6">
         <div className="mb-8 text-center">
+          <Image
+            src="/assets/img/avatar.png"
+            alt="Logo"
+            className="h-20 w-25"
+            width={100}
+            height={100}
+          />
+
           <h2 className="text-xl font-bold mb-4">TEMA: </h2>
           <p>{ticket.tema}</p>
           <h2 className="text-xl font-bold mb-4">Especialista:</h2>
