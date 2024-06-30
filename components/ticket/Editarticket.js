@@ -7,16 +7,17 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  CircularProgress,
 } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
 import { EditIcon } from "./Iconsactions";
-import emailjs from "emailjs-com";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export function Editarticket({ ticketData }) {
   const [descripcionValue, setDescripcionValue] = useState(
     ticketData && ticketData.descripcion_caso ? ticketData.descripcion_caso : ""
   );
-
   const [solucionValue, setSolucionValue] = useState(
     ticketData && ticketData.solucion_caso ? ticketData.solucion_caso : ""
   );
@@ -24,11 +25,10 @@ export function Editarticket({ ticketData }) {
   const [statuses, setStatuses] = useState([]);
   const [terceros, setTerceros] = useState([]);
   const [users, setUsers] = useState([]);
-  const [isUpdated, setIsUpdated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [finalizeMessage, setFinalizeMessage] = useState("");
   const [finalizeError, setFinalizeError] = useState("");
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [loadingFinalize, setLoadingFinalize] = useState(false);
 
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -80,6 +80,8 @@ export function Editarticket({ ticketData }) {
 
   const handleSubmit = async () => {
     try {
+      setLoadingUpdate(true);
+
       const ticketDataToUpdate = {
         id: ticketData.id,
         fecha_creacion: ticketData.fecha_creacion,
@@ -101,20 +103,24 @@ export function Editarticket({ ticketData }) {
         ticketDataToUpdate
       );
       console.log("Ticket actualizado:", response.data);
-      setSuccessMessage("Tus cambios se han guardado.");
+
+      toast.success("Tus cambios se han guardado correctamente");
 
       setTimeout(() => {
-        setSuccessMessage("");
         setIsOpen(false);
         window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar el ticket:", error);
+    } finally {
+      setLoadingUpdate(false);
     }
   };
 
   const handleFinalize = async () => {
     try {
+      setLoadingFinalize(true);
+
       if (!solucionValue) {
         setFinalizeError("Por favor, ingresa una solución al caso.");
         return;
@@ -148,15 +154,16 @@ export function Editarticket({ ticketData }) {
       );
       console.log("Ticket solucionado:", response.data);
 
-      setFinalizeMessage("El ticket se ha finalizado.");
+      toast.success("El ticket se ha finalizado correctamente");
 
       setTimeout(() => {
-        setFinalizeMessage("");
         setIsOpen(false);
         window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Error al finalizar el ticket:", error);
+    } finally {
+      setLoadingFinalize(false);
     }
   };
 
@@ -171,6 +178,8 @@ export function Editarticket({ ticketData }) {
 
   const handleUpdate = async () => {
     try {
+      setLoadingUpdate(true);
+
       const ticketDataToUpdate = {
         id: ticketData.id,
         fecha_creacion: ticketData.fecha_creacion,
@@ -199,15 +208,16 @@ export function Editarticket({ ticketData }) {
         ticketDataToUpdate
       );
 
-      setSuccessMessage("Tus cambios se han guardado.");
+      toast.success("Tus cambios se han guardado correctamente");
 
       setTimeout(() => {
-        setSuccessMessage("");
         setIsOpen(false);
         window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar el ticket:", error);
+    } finally {
+      setLoadingUpdate(false);
     }
   };
 
@@ -225,6 +235,7 @@ export function Editarticket({ ticketData }) {
             Editar ticket
           </ModalHeader>
           <ModalBody>
+            <ToastContainer /> {/* ToastContainer dentro del ModalBody */}
             <div className="flex flex-col space-y-7">
               <Autocomplete
                 items={topics}
@@ -298,24 +309,23 @@ export function Editarticket({ ticketData }) {
             <Button color="danger" variant="light" onPress={closeModal}>
               Cancelar
             </Button>
-            <Button color="primary" onClick={handleUpdate}>
-              Guardar
+            <Button
+              color="primary"
+              onClick={handleUpdate}
+              disabled={loadingUpdate}
+            >
+              {loadingUpdate ? <CircularProgress size={24} /> : "Guardar"}
             </Button>
             {selectedStatus && selectedStatus.name === "En proceso" && (
-              <Button color="success" onPress={handleFinalize}>
-                Finalizar
+              <Button
+                color="success"
+                onPress={handleFinalize}
+                disabled={loadingFinalize}
+              >
+                {loadingFinalize ? <CircularProgress size={24} /> : "Finalizar"}
               </Button>
             )}
           </ModalFooter>
-          {successMessage && (
-            <div className="text-green-600 text-center">{successMessage}</div>
-          )}
-          {finalizeMessage && (
-            <div className="text-green-600 text-center">{finalizeMessage}</div>
-          )}
-          {finalizeError && (
-            <div className="text-red-600 text-center">{finalizeError}</div>
-          )}
         </ModalContent>
       </Modal>
     </>

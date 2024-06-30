@@ -96,7 +96,10 @@ export function Tickets() {
     axios
       .delete(`http://127.0.0.1:5000/tickets/${id}`)
       .then((response) => {
-        window.location.reload();
+        // Actualiza el estado local de tickets excluyendo el ticket eliminado
+        setTickets((prevTickets) =>
+          prevTickets.filter((ticket) => ticket.id !== id)
+        );
       })
       .catch((error) => {
         console.error("Error deleting ticket:", error);
