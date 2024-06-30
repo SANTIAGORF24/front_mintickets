@@ -291,7 +291,7 @@ export function Todostickets() {
           <Button color="primary" onClick={clearFilters}>
             Limpiar filtros
           </Button>
-          <Button color="secondary" onClick={downloadExcel}>
+          <Button className="bg-green-500 text-white" onClick={downloadExcel}>
             Descargar Excel
           </Button>
         </div>

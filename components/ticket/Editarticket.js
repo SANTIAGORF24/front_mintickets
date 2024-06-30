@@ -158,7 +158,9 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         ticketDataToUpdate
       );
 
-      toast.success("El ticket se ha finalizado correctamente");
+      toast.success("El ticket se ha finalizado correctamente", {
+        className: "toast-success",
+      });
 
       onTicketUpdate(ticketDataToUpdate); // Call the callback function with the updated ticket data
 
@@ -279,17 +281,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
             >
               Cerrar
             </Button>
-            <Button
-              color="primary"
-              onPress={handleFinalize}
-              isDisabled={loadingFinalize}
-            >
-              {loadingFinalize ? (
-                <CircularProgress size="sm" color="white" />
-              ) : (
-                "Finalizar ticket"
-              )}
-            </Button>
+
             <Button
               color="primary"
               onPress={handleUpdate}
@@ -301,6 +293,19 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                 "Guardar cambios"
               )}
             </Button>
+            {selectedStatus && selectedStatus.name === "En proceso" && (
+              <Button
+                className="bg-green-500"
+                onPress={handleFinalize}
+                isDisabled={loadingFinalize}
+              >
+                {loadingFinalize ? (
+                  <CircularProgress size="sm" color="white" />
+                ) : (
+                  "Finalizar ticket"
+                )}
+              </Button>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
