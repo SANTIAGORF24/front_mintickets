@@ -23,6 +23,9 @@ export function Nuevoticket() {
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [descripcionImages, setDescripcionImages] = useState([]);
+  const [solucionImages, setSolucionImages] = useState([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -47,6 +50,30 @@ export function Nuevoticket() {
     fetchData();
   }, []);
 
+  const handleImageUpload = (files, setter) => {
+    const filePromises = Array.from(files).map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(filePromises).then((base64Images) => {
+      setter((prevImages) => [...prevImages, ...base64Images]);
+    });
+  };
+
+  const handleDrop = (event, setter) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    handleImageUpload(files, setter);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
   const handleSubmit = async () => {
     try {
       if (!selectedTopic || !selectedTercero || !selectedUser) {
@@ -66,6 +93,8 @@ export function Nuevoticket() {
         especialista_email: selectedUserEmail,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
+        descripcion_images: descripcionImages,
+        solucion_images: solucionImages,
       };
 
       console.log("Enviando datos del ticket:", ticketData);
@@ -161,27 +190,81 @@ export function Nuevoticket() {
               )}
             </div>
             <div className="w-4/6">
-              <p className="text-[#4a53a0] font-bold text-xl mb-2">
-                Descripción del caso:
-              </p>
-              <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-slate-100"
-                value={descripcionValue}
-                onChange={(e) => setDescripcionValue(e.target.value)}
-                placeholder="Descripción del caso"
-              />
-              <p className="text-[#4a53a0] font-bold text-xl mt-4 mb-2">
-                Solución al caso:
-              </p>
-              <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-slate-100"
-                value={solucionValue}
-                onChange={(e) => setSolucionValue(e.target.value)}
-                placeholder="Solución al caso"
-              />
+              <div>
+                <p className="text-[#4a53a0] font-bold text-xl mb-2">
+                  Descripción del caso:
+                </p>
+                <div
+                  onDrop={(e) => handleDrop(e, setDescripcionImages)}
+                  onDragOver={handleDragOver}
+                  className="border border-gray-300 rounded p-2"
+                >
+                  <textarea
+                    className="w-full h-[150px] p-2 text-black bg-slate-100 border-none outline-none"
+                    value={descripcionValue}
+                    onChange={(e) => setDescripcionValue(e.target.value)}
+                    placeholder="Descripción del caso"
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {descripcionImages.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Uploaded ${index}`}
+                        className="w-20 h-20 object-cover"
+                      />
+                    ))}
+                  </div>
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleImageUpload(e.target.files, setDescripcionImages)
+                  }
+                  className="mt-2"
+                />
+              </div>
+              <div className="mt-4">
+                <p className="text-[#4a53a0] font-bold text-xl mb-2">
+                  Solución al caso:
+                </p>
+                <div
+                  onDrop={(e) => handleDrop(e, setSolucionImages)}
+                  onDragOver={handleDragOver}
+                  className="border border-gray-300 rounded p-2"
+                >
+                  <textarea
+                    className="w-full h-[150px] p-2 text-black bg-slate-100 border-none outline-none"
+                    value={solucionValue}
+                    onChange={(e) => setSolucionValue(e.target.value)}
+                    placeholder="Solución al caso"
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {solucionImages.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Uploaded ${index}`}
+                        className="w-20 h-20 object-cover"
+                      />
+                    ))}
+                  </div>
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleImageUpload(e.target.files, setSolucionImages)
+                  }
+                  className="mt-2"
+                />
+              </div>
             </div>
           </div>
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center mt-4">
             <Button
               onClick={handleSubmit}
               className="self-center bg-[#4a53a0] text-white w-full h-12 text-xl rounded-2xl hover:shadow-lg hover:bg-[#666eb5]"
