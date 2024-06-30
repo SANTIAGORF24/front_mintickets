@@ -1,8 +1,9 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Image from "next/image";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Home({ searchParams }) {
   const { id } = searchParams;
@@ -14,8 +15,6 @@ export default function Home({ searchParams }) {
     question2: 0,
     question3: 0,
   });
-  const [message, setMessage] = useState(null);
-  const [messageType, setMessageType] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -52,16 +51,14 @@ export default function Home({ searchParams }) {
         respuesta: ratings.question3,
       })
       .then((response) => {
-        setMessage(
-          "Muchas gracias por llenar la encuesta para poder mejorar en nuestros servicios."
+        toast.success(
+          "Sus respuestas han sido enviadas. ¡Gracias por responder!"
         );
-        setMessageType("success");
       })
       .catch((error) => {
-        setMessage(
+        toast.error(
           "Error al enviar la encuesta. Por favor, intente más tarde."
         );
-        setMessageType("error");
       });
   };
 
@@ -79,6 +76,7 @@ export default function Home({ searchParams }) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <ToastContainer /> {/* Agrega el ToastContainer aquí */}
       <div className="p-6 bg-white text-black rounded-lg shadow-lg w-5/6">
         <div className="mb-8 text-center">
           <Image
@@ -101,16 +99,6 @@ export default function Home({ searchParams }) {
             SEGÚN SU RESPUESTA CALIFIQUE LO SIGUIENTE:
           </h2>
         </div>
-
-        {message && (
-          <div
-            className={`text-center mb-4 ${
-              messageType === "success" ? "text-green-500" : "text-red-500"
-            }`}
-          >
-            {message}
-          </div>
-        )}
 
         <div className="text-center">
           <div>
