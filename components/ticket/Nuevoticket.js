@@ -178,10 +178,6 @@ export function Nuevoticket() {
             <div className="text-green-600 font-bold text-center">
               Correo enviado
             </div>
-          ) : ticketCreated ? (
-            <div className="text-red-600 font-bold text-center">
-              Fallo el envío del correo
-            </div>
           ) : null}
           <div className="flex items-center justify-center">
             <Button

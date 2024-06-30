@@ -124,7 +124,10 @@ export function Tickets() {
           <EyeIcon />
         </span>
         <span className="text-lg cursor-pointer active:opacity-50 text-blue-600">
-          <Editarticket ticketData={ticket} />
+          <Editarticket
+            ticketData={ticket}
+            onTicketUpdate={handleTicketUpdate}
+          />
         </span>
         <span
           className="text-lg cursor-pointer active:opacity-50 trash-icon text-red-500"
@@ -185,6 +188,14 @@ export function Tickets() {
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
+
+  const handleTicketUpdate = (updatedTicket) => {
+    setTickets((prevTickets) =>
+      prevTickets.map((ticket) =>
+        ticket.id === updatedTicket.id ? updatedTicket : ticket
+      )
+    );
+  };
 
   return (
     <div className="w-full">

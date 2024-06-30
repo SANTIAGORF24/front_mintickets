@@ -84,6 +84,14 @@ export function Todostickets() {
     // Abre el modal aquí
   };
 
+  const handleTicketUpdate = (updatedTicket) => {
+    setTickets((prevTickets) =>
+      prevTickets.map((ticket) =>
+        ticket.id === updatedTicket.id ? updatedTicket : ticket
+      )
+    );
+  };
+
   const renderActions = (ticket) => {
     return (
       <div className="relative flex items-center gap-2">
@@ -96,7 +104,10 @@ export function Todostickets() {
           <EyeIcon />
         </span>
         <span className="text-lg cursor-pointer active:opacity-50 text-blue-600">
-          <Editarticket ticketData={ticket} />
+          <Editarticket
+            ticketData={ticket}
+            onTicketUpdate={handleTicketUpdate}
+          />
         </span>
         <span
           className="text-lg cursor-pointer active:opacity-50 trash-icon text-red-500"

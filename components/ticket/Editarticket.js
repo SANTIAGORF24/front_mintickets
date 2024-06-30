@@ -14,7 +14,7 @@ import { EditIcon } from "./Iconsactions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export function Editarticket({ ticketData }) {
+export function Editarticket({ ticketData, onTicketUpdate }) {
   const [descripcionValue, setDescripcionValue] = useState(
     ticketData && ticketData.descripcion_caso ? ticketData.descripcion_caso : ""
   );
@@ -78,37 +78,42 @@ export function Editarticket({ ticketData }) {
     }
   }, [ticketData, statuses]);
 
-  const handleSubmit = async () => {
+  const handleUpdate = async () => {
     try {
       setLoadingUpdate(true);
 
       const ticketDataToUpdate = {
         id: ticketData.id,
         fecha_creacion: ticketData.fecha_creacion,
-        fecha_finalizacion: new Date().toISOString(),
         tema: selectedTopic ? selectedTopic.name : ticketData.tema,
         estado: selectedStatus ? selectedStatus.name : ticketData.estado,
         tercero_nombre: selectedTercero
           ? selectedTercero.name
           : ticketData.tercero_nombre,
+        tercero_email: selectedTercero
+          ? selectedTercero.email
+          : ticketData.tercero_email,
         especialista_nombre: selectedUser
           ? selectedUser.name
           : ticketData.especialista_nombre,
+        especialista_email: selectedUser
+          ? selectedUser.email
+          : ticketData.especialista_email,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
       };
 
-      const response = await axios.put(
+      await axios.patch(
         `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
         ticketDataToUpdate
       );
-      console.log("Ticket actualizado:", response.data);
 
       toast.success("Tus cambios se han guardado correctamente");
 
+      onTicketUpdate(ticketDataToUpdate); // Call the callback function with the updated ticket data
+
       setTimeout(() => {
         setIsOpen(false);
-        window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar el ticket:", error);
@@ -148,17 +153,17 @@ export function Editarticket({ ticketData }) {
         solucion_caso: solucionValue,
       };
 
-      const response = await axios.put(
+      await axios.put(
         `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}/finalize`,
         ticketDataToUpdate
       );
-      console.log("Ticket solucionado:", response.data);
 
       toast.success("El ticket se ha finalizado correctamente");
 
+      onTicketUpdate(ticketDataToUpdate); // Call the callback function with the updated ticket data
+
       setTimeout(() => {
         setIsOpen(false);
-        window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Error al finalizar el ticket:", error);
@@ -174,51 +179,6 @@ export function Editarticket({ ticketData }) {
   const closeModal = () => {
     setIsOpen(false);
     setFinalizeError("");
-  };
-
-  const handleUpdate = async () => {
-    try {
-      setLoadingUpdate(true);
-
-      const ticketDataToUpdate = {
-        id: ticketData.id,
-        fecha_creacion: ticketData.fecha_creacion,
-        tema: selectedTopic ? selectedTopic.name : ticketData.tema,
-        estado: selectedStatus ? selectedStatus.name : ticketData.estado,
-        tercero_nombre: selectedTercero
-          ? selectedTercero.name
-          : ticketData.tercero_nombre,
-        tercero_email: selectedTercero
-          ? selectedTercero.email
-          : ticketData.tercero_email,
-        especialista_nombre: selectedUser
-          ? selectedUser.name
-          : ticketData.especialista_nombre,
-        especialista_email: selectedUser
-          ? selectedUser.email
-          : ticketData.especialista_email,
-        descripcion_caso: descripcionValue,
-        solucion_caso: solucionValue,
-      };
-
-      console.log("Datos a actualizar:", ticketDataToUpdate);
-
-      await axios.patch(
-        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
-        ticketDataToUpdate
-      );
-
-      toast.success("Tus cambios se han guardado correctamente");
-
-      setTimeout(() => {
-        setIsOpen(false);
-        window.location.reload();
-      }, 2000);
-    } catch (error) {
-      console.error("Error al actualizar el ticket:", error);
-    } finally {
-      setLoadingUpdate(false);
-    }
   };
 
   return (
@@ -289,42 +249,58 @@ export function Editarticket({ ticketData }) {
                 Descripción del caso:
               </p>
               <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-slate-100"
+                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-white"
+                placeholder="Descripción del caso"
                 value={descripcionValue}
                 onChange={(e) => setDescripcionValue(e.target.value)}
-                placeholder="Descripción del caso"
-              />
-              <p className="text-[#4a53a0] font-bold text-xl">
-                Solución al caso:
-              </p>
-              <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-slate-100"
-                value={solucionValue}
-                onChange={(e) => setSolucionValue(e.target.value)}
-                placeholder="Solución al caso"
               />
             </div>
+            <div>
+              <p className="text-[#4a53a0] font-bold text-xl">
+                Solución del caso:
+              </p>
+              <textarea
+                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-white"
+                placeholder="Solución del caso"
+                value={solucionValue}
+                onChange={(e) => setSolucionValue(e.target.value)}
+              />
+            </div>
+            {finalizeError && (
+              <p className="text-red-500 text-sm">{finalizeError}</p>
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button color="danger" variant="light" onPress={closeModal}>
-              Cancelar
+            <Button
+              color="danger"
+              variant="flat"
+              onPress={closeModal}
+              className="text-red-500"
+            >
+              Cerrar
             </Button>
             <Button
               color="primary"
-              onClick={handleUpdate}
-              disabled={loadingUpdate}
+              onPress={handleFinalize}
+              isDisabled={loadingFinalize}
             >
-              {loadingUpdate ? <CircularProgress size={24} /> : "Guardar"}
+              {loadingFinalize ? (
+                <CircularProgress size="sm" color="white" />
+              ) : (
+                "Finalizar ticket"
+              )}
             </Button>
-            {selectedStatus && selectedStatus.name === "En proceso" && (
-              <Button
-                color="success"
-                onPress={handleFinalize}
-                disabled={loadingFinalize}
-              >
-                {loadingFinalize ? <CircularProgress size={24} /> : "Finalizar"}
-              </Button>
-            )}
+            <Button
+              color="primary"
+              onPress={handleUpdate}
+              isDisabled={loadingUpdate}
+            >
+              {loadingUpdate ? (
+                <CircularProgress size="sm" color="white" />
+              ) : (
+                "Guardar cambios"
+              )}
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
