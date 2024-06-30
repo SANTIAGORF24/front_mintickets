@@ -12,6 +12,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Pagination,
 } from "@nextui-org/react";
 
 import { SearchIcon } from "../ticket/SearchIcon";
@@ -24,6 +25,8 @@ export function Temas() {
   const [topics, setTopics] = useState([]);
   const [editingTopicId, setEditingTopicId] = useState(null);
   const [updatedTopicName, setUpdatedTopicName] = useState("");
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const fetchTopics = async () => {
     try {
@@ -113,7 +116,18 @@ export function Temas() {
 
   const onSearchChange = (event) => {
     setFilterValue(event.target.value);
+    setPage(1);
   };
+
+  const filteredTopics = topics.filter((topic) =>
+    topic.name.toLowerCase().includes(filterValue.toLowerCase())
+  );
+
+  const pages = Math.ceil(filteredTopics.length / rowsPerPage);
+  const paginatedTopics = filteredTopics.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
 
   return (
     <div>
@@ -177,7 +191,7 @@ export function Temas() {
           <TableColumn>Acciones</TableColumn>
         </TableHeader>
         <TableBody>
-          {topics.map((topic) => (
+          {paginatedTopics.map((topic) => (
             <TableRow key={topic.id}>
               <TableCell className="text-black">{topic.id}</TableCell>
               <TableCell className="text-black">
@@ -215,6 +229,22 @@ export function Temas() {
           ))}
         </TableBody>
       </Table>
+      <div className="flex justify-between items-center mt-4">
+        <Pagination total={pages} page={page} onChange={setPage} />
+        <select
+          className="text-black"
+          value={rowsPerPage}
+          onChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(1);
+          }}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={15}>15</option>
+          <option value={10000}>Todos</option>
+        </select>
+      </div>
     </div>
   );
 }

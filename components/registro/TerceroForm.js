@@ -12,6 +12,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Pagination,
 } from "@nextui-org/react";
 
 import { SearchIcon } from "../ticket/SearchIcon";
@@ -24,6 +25,8 @@ export function TerceroForm() {
   const [terceros, setTerceros] = useState([]);
   const [editingTerceroId, setEditingTerceroId] = useState(null);
   const [updatedTercero, setUpdatedTercero] = useState({ name: "", email: "" });
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const fetchTerceros = async () => {
     try {
@@ -122,7 +125,20 @@ export function TerceroForm() {
 
   const onSearchChange = (event) => {
     setFilterValue(event.target.value);
+    setPage(1);
   };
+
+  const filteredTerceros = terceros.filter(
+    (tercero) =>
+      tercero.name.toLowerCase().includes(filterValue.toLowerCase()) ||
+      tercero.email.toLowerCase().includes(filterValue.toLowerCase())
+  );
+
+  const pages = Math.ceil(filteredTerceros.length / rowsPerPage);
+  const paginatedTerceros = filteredTerceros.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
 
   return (
     <div>
@@ -196,7 +212,7 @@ export function TerceroForm() {
           <TableColumn>Acciones</TableColumn>
         </TableHeader>
         <TableBody>
-          {terceros.map((tercero) => (
+          {paginatedTerceros.map((tercero) => (
             <TableRow key={tercero.id}>
               <TableCell className="text-black">{tercero.id}</TableCell>
               <TableCell className="text-black">
@@ -247,6 +263,22 @@ export function TerceroForm() {
           ))}
         </TableBody>
       </Table>
+      <div className="flex justify-between items-center mt-4">
+        <Pagination total={pages} page={page} onChange={setPage} />
+        <select
+          className="text-black"
+          value={rowsPerPage}
+          onChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(1);
+          }}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={15}>15</option>
+          <option value={10000}>Todos</option>
+        </select>
+      </div>
     </div>
   );
 }

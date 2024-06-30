@@ -12,11 +12,12 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Pagination,
 } from "@nextui-org/react";
 
 import { SearchIcon } from "../ticket/SearchIcon";
 import { PlusIcon } from "../ticket/PlusIcon";
-import { DeleteIcon, EditIcon, EyeIcon } from "../ticket/Iconsactions";
+import { DeleteIcon, EditIcon } from "../ticket/Iconsactions";
 
 export function Estados() {
   const [filterValue, setFilterValue] = useState("");
@@ -24,6 +25,8 @@ export function Estados() {
   const [status, setStatus] = useState([]);
   const [editingStatuId, setEditingStatuId] = useState(null);
   const [updatedStatuName, setUpdatedStatuName] = useState("");
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const fetchStatus = async () => {
     try {
@@ -61,10 +64,10 @@ export function Estados() {
         setNewStatu("");
         fetchStatus();
       } else {
-        console.error("Failed to add new statu");
+        console.error("Failed to add new status");
       }
     } catch (error) {
-      console.error("Error adding new statu:", error);
+      console.error("Error adding new status:", error);
     }
   };
 
@@ -76,10 +79,10 @@ export function Estados() {
       if (response.ok) {
         fetchStatus();
       } else {
-        console.error("Failed to delete statu");
+        console.error("Failed to delete status");
       }
     } catch (error) {
-      console.error("Error deleting statu:", error);
+      console.error("Error deleting status:", error);
     }
   };
 
@@ -104,23 +107,34 @@ export function Estados() {
         setEditingStatuId(null);
         fetchStatus();
       } else {
-        console.error("Failed to update statu");
+        console.error("Failed to update status");
       }
     } catch (error) {
-      console.error("Error updating statu:", error);
+      console.error("Error updating status:", error);
     }
   };
 
   const onSearchChange = (event) => {
     setFilterValue(event.target.value);
+    setPage(1);
   };
+
+  const filteredStatus = status.filter((statu) =>
+    statu.name.toLowerCase().includes(filterValue.toLowerCase())
+  );
+
+  const pages = Math.ceil(filteredStatus.length / rowsPerPage);
+  const paginatedStatus = filteredStatus.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
 
   return (
     <div>
       <div className="flex justify-between items-end mb-4">
         <Input
           isClearable
-          placeholder="Search by statu..."
+          placeholder="Search by status..."
           size="sm"
           startContent={<SearchIcon />}
           value={filterValue}
@@ -177,7 +191,7 @@ export function Estados() {
           <TableColumn>Acciones</TableColumn>
         </TableHeader>
         <TableBody>
-          {status.map((statu) => (
+          {paginatedStatus.map((statu) => (
             <TableRow key={statu.id}>
               <TableCell className="text-black">{statu.id}</TableCell>
               <TableCell className="text-black">
@@ -215,6 +229,22 @@ export function Estados() {
           ))}
         </TableBody>
       </Table>
+      <div className="flex justify-between items-center mt-4">
+        <Pagination total={pages} page={page} onChange={setPage} />
+        <select
+          className="text-black"
+          value={rowsPerPage}
+          onChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(1);
+          }}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={15}>15</option>
+          <option value={10000}>Todos</option>
+        </select>
+      </div>
     </div>
   );
 }
