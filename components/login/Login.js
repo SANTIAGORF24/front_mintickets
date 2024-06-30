@@ -1,20 +1,23 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { Input, Button } from "@nextui-org/react";
+import { Input, Button, CircularProgress } from "@nextui-org/react";
 import { EyeFilledIcon } from "./EyeFilledIcon";
 import { EyeSlashFilledIcon } from "./EyeSlashFilledIcon";
 import { useRouter } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export function Login() {
   const [isVisible, setIsVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch("http://127.0.0.1:5000/auth/login", {
         method: "POST",
@@ -32,10 +35,17 @@ export function Login() {
         console.log("Token de acceso almacenado:", data.access_token);
         router.push("/ticket");
       } else {
-        setError(data.message);
+        if (response.status === 404) {
+          toast.error("Usuario no encontrado");
+        } else {
+          toast.error("Credenciales incorrectas");
+        }
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
+      toast.error("Error al iniciar sesión");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,6 +89,7 @@ export function Login() {
                     label="Contraseña"
                     variant="bordered"
                     placeholder="Ingresa la contraseña"
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     endContent={
                       <button
@@ -97,15 +108,18 @@ export function Login() {
                     onKeyPress={handleKeyPress}
                     className="max-w-xs text-black"
                   />
-                  {error && <div className="text-red-500">{error}</div>}{" "}
-                  {/* Mostrar el mensaje de error */}
                 </div>
                 <div>
                   <Button
                     onClick={handleLogin}
                     className="bg-[#4a53a0] text-white"
+                    disabled={isLoading}
                   >
-                    Iniciar sesión
+                    {isLoading ? (
+                      <CircularProgress size="sm" color="current" />
+                    ) : (
+                      "Iniciar sesión"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -123,6 +137,7 @@ export function Login() {
           </div>
         </div>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 }

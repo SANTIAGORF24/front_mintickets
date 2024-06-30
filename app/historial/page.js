@@ -4,6 +4,7 @@ import axios from "axios";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Progress, Accordion, AccordionItem } from "@nextui-org/react";
 
 const Home = () => {
   const [ticketId, setTicketId] = useState("");
@@ -46,23 +47,28 @@ const Home = () => {
     }
   };
 
-  // Función para determinar la clase de color del estado
-  const getColorClass = () => {
-    if (ticketData && ticketData.estado === "Solucionado") {
-      return "bg-green-500";
-    } else if (ticketData && ticketData.estado === "En proceso") {
-      return "bg-orange-500";
-    } else if (ticketData && ticketData.estado === "Creado") {
-      return "bg-red-500";
+  // Función para determinar el progreso y el color
+  const getProgressProps = () => {
+    if (ticketData) {
+      switch (ticketData.estado) {
+        case "Creado":
+          return { value: 10, color: "danger" };
+        case "En proceso":
+          return { value: 60, color: "warning" };
+        case "Solucionado":
+          return { value: 100, color: "success" };
+        default:
+          return { value: 0, color: "default" };
+      }
     }
-    return "";
+    return { value: 0, color: "default" };
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 text-black">
       <ToastContainer />
-      <div className="w-5/6 p-6 shadow-lg bg-white rounded-md flex">
-        <div className="mr-10">
+      <div className="w-full max-w-4xl p-6 shadow-lg bg-white rounded-md flex flex-col items-center">
+        <div className="mb-6">
           <Image
             src="/assets/img/avatar.png"
             alt="Logo"
@@ -71,9 +77,11 @@ const Home = () => {
             height={100}
           />
         </div>
-        <div className="flex-1">
-          <h3 className="text-2xl mb-4 text-black">Buscar Ticket</h3>
-          <div className="flex items-center mb-4 text-black">
+        <div className="flex-1 w-full">
+          <h3 className="text-2xl mb-4 text-black text-center">
+            Buscar Ticket
+          </h3>
+          <div className="flex items-center justify-center mb-4 text-black">
             <input
               type="text"
               placeholder="ID del Ticket"
@@ -88,44 +96,84 @@ const Home = () => {
               Buscar
             </button>
           </div>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
           {ticketData && (
-            <div className="mt-4 text-black flex flex-col items-center">
-              <div
-                className={`py-5 w-1/6 rounded-md text-center ${getColorClass()}`}
-              >
-                <p className="font-bold">Estado del Ticket:</p>
-                <p>{ticketData.estado}</p>
+            <div className="w-full mt-4 relative flex justify-center">
+              <Progress
+                {...getProgressProps()}
+                className="max-w-md w-full md:w-2/3"
+              />
+              <div className="flex justify-between w-full max-w-md absolute -bottom-6 text-xs">
+                <span className="transform -translate-x-1/2 font-bold">
+                  Creado
+                </span>
+                <span className="transform translate-x-1/2 font-bold">
+                  En proceso
+                </span>
+                <span className="transform translate-x-1/2 font-bold">
+                  Solucionado
+                </span>
               </div>
-              <div className="py-5 text-center">
-                <p className="font-bold">ID del Ticket:</p>
-                <p>{ticketData.id}</p>
-              </div>
-              <div className="py-5 text-center">
-                <p className="font-bold">Especialista Asignado:</p>
-                <p>{ticketData.especialista_nombre}</p>
-              </div>
-              <div className="py-5 text-center">
-                <p className="font-bold">Tema del Ticket:</p>
-                <p>{ticketData.tema}</p>
-              </div>
-              <div className="py-5 text-center">
-                <p className="font-bold">Descripción del Caso:</p>
-                <p>{ticketData.descripcion_caso}</p>
-              </div>
-              {ticketData.estado === "Solucionado" && (
-                <div className="py-5 text-center">
-                  <p className="font-bold">Solución del Caso:</p>
-                  <p>{ticketData.solucion_caso}</p>
-                </div>
-              )}
-              {ticketData.estado === "Solucionado" &&
-                ticketData.fecha_finalizacion && (
-                  <div className="py-5 text-center">
-                    <p className="font-bold">Fecha de Finalización:</p>
-                    <p>{ticketData.fecha_finalizacion}</p>
-                  </div>
+            </div>
+          )}
+          {ticketData && (
+            <div className="mt-12 w-full">
+              <Accordion>
+                <AccordionItem
+                  key="1"
+                  aria-label="Estado del Ticket"
+                  title="Estado del Ticket"
+                >
+                  <p>{ticketData.estado}</p>
+                </AccordionItem>
+                <AccordionItem
+                  key="2"
+                  aria-label="ID del Ticket"
+                  title="ID del Ticket"
+                >
+                  <p>{ticketData.id}</p>
+                </AccordionItem>
+                <AccordionItem
+                  key="3"
+                  aria-label="Especialista Asignado"
+                  title="Especialista Asignado"
+                >
+                  <p>{ticketData.especialista_nombre}</p>
+                </AccordionItem>
+                <AccordionItem
+                  key="4"
+                  aria-label="Tema del Ticket"
+                  title="Tema del Ticket"
+                >
+                  <p>{ticketData.tema}</p>
+                </AccordionItem>
+                <AccordionItem
+                  key="5"
+                  aria-label="Descripción del Caso"
+                  title="Descripción del Caso"
+                >
+                  <p>{ticketData.descripcion_caso}</p>
+                </AccordionItem>
+                {ticketData.estado === "Solucionado" && (
+                  <AccordionItem
+                    key="6"
+                    aria-label="Solución del Caso"
+                    title="Solución del Caso"
+                  >
+                    <p>{ticketData.solucion_caso}</p>
+                  </AccordionItem>
                 )}
+                {ticketData.estado === "Solucionado" &&
+                  ticketData.fecha_finalizacion && (
+                    <AccordionItem
+                      key="7"
+                      aria-label="Fecha de Finalización"
+                      title="Fecha de Finalización"
+                    >
+                      <p>{ticketData.fecha_finalizacion}</p>
+                    </AccordionItem>
+                  )}
+              </Accordion>
             </div>
           )}
         </div>

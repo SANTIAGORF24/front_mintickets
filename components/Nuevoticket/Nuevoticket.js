@@ -205,7 +205,7 @@ export function Nuevoticket() {
                     onChange={(e) => setDescripcionValue(e.target.value)}
                     placeholder="Descripción del caso"
                   />
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2 ">
                     {descripcionImages.map((img, index) => (
                       <img
                         key={index}
@@ -216,51 +216,32 @@ export function Nuevoticket() {
                     ))}
                   </div>
                 </div>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleImageUpload(e.target.files, setDescripcionImages)
-                  }
-                  className="mt-2"
-                />
-              </div>
-              <div className="mt-4">
-                <p className="text-[#4a53a0] font-bold text-xl mb-2">
-                  Solución al caso:
-                </p>
                 <div
-                  onDrop={(e) => handleDrop(e, setSolucionImages)}
+                  onDrop={(e) => handleDrop(e, setDescripcionImages)}
                   onDragOver={handleDragOver}
-                  className="border border-gray-300 rounded p-2"
+                  className="border border-dashed border-gray-300 rounded p-4 mt-2 text-center text-gray-500"
                 >
-                  <textarea
-                    className="w-full h-[150px] p-2 text-black bg-slate-100 border-none outline-none"
-                    value={solucionValue}
-                    onChange={(e) => setSolucionValue(e.target.value)}
-                    placeholder="Solución al caso"
+                  <p>
+                    Arrastra y suelta las imágenes aquí o selecciona las
+                    imágenes
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) =>
+                      handleImageUpload(e.target.files, setDescripcionImages)
+                    }
+                    className="hidden"
+                    id="descripcionImageInput"
                   />
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {solucionImages.map((img, index) => (
-                      <img
-                        key={index}
-                        src={img}
-                        alt={`Uploaded ${index}`}
-                        className="w-20 h-20 object-cover"
-                      />
-                    ))}
-                  </div>
+                  <label
+                    htmlFor="descripcionImageInput"
+                    className="cursor-pointer text-blue-500 underline"
+                  >
+                    Seleccionar imágenes
+                  </label>
                 </div>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleImageUpload(e.target.files, setSolucionImages)
-                  }
-                  className="mt-2"
-                />
               </div>
             </div>
           </div>

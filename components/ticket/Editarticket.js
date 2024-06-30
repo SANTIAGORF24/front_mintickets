@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Button,
@@ -41,6 +41,9 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     ticketData ? ticketData.especialista_email : null
   );
 
+  const [solucionImages, setSolucionImages] = useState([]);
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -78,6 +81,30 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     }
   }, [ticketData, statuses]);
 
+  const handleImageUpload = (files, setter) => {
+    const filePromises = Array.from(files).map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(filePromises).then((base64Images) => {
+      setter((prevImages) => [...prevImages, ...base64Images]);
+    });
+  };
+
+  const handleDrop = (event, setter) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    handleImageUpload(files, setter);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
   const handleUpdate = async () => {
     try {
       setLoadingUpdate(true);
@@ -101,6 +128,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
           : ticketData.especialista_email,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
+        solucion_images: solucionImages,
       };
 
       await axios.patch(
@@ -128,6 +156,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
 
       if (!solucionValue) {
         setFinalizeError("Por favor, ingresa una solución al caso.");
+        toast.error("Por favor, ingresa una solución al caso.");
         return;
       }
 
@@ -151,6 +180,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
           : ticketData.especialista_email,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
+        solucion_images: solucionImages,
       };
 
       await axios.put(
@@ -158,16 +188,15 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         ticketDataToUpdate
       );
 
-      toast.success("El ticket se ha finalizado correctamente", {
-        className: "toast-success",
-      });
+      toast.success("El ticket se ha finalizado correctamente");
 
-      onTicketUpdate(ticketDataToUpdate); // Call the callback function with the updated ticket data
+      onTicketUpdate(ticketDataToUpdate);
 
       setTimeout(() => {
         setIsOpen(false);
       }, 2000);
     } catch (error) {
+      toast.error("Error al finalizar el ticket.");
       console.error("Error al finalizar el ticket:", error);
     } finally {
       setLoadingFinalize(false);
@@ -183,6 +212,12 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     setFinalizeError("");
   };
 
+  const handleSelectImagesClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <>
       <Button className="bg-transparent" onPress={openModal}>
@@ -191,113 +226,168 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         </span>
       </Button>
 
-      <Modal isOpen={isOpen} onClose={closeModal}>
+      <Modal isOpen={isOpen} onClose={closeModal} size="5xl">
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1">
+          <ModalHeader className="flex flex-col gap-1 text-blue-600">
             Editar ticket
           </ModalHeader>
           <ModalBody>
             <ToastContainer /> {/* ToastContainer dentro del ModalBody */}
             <div className="flex flex-col space-y-7">
-              <Autocomplete
-                items={topics}
-                label="Tema"
-                placeholder="Seleccionar tema"
-                onSelect={(value) => setSelectedTopic(value)}
-                defaultValue={ticketData ? ticketData.tema : ""}
-              />
-              <Autocomplete
-                items={statuses.filter(
-                  (status) => status.name !== "Solucionado"
-                )}
-                label="Estado del ticket"
-                placeholder="Selecciona un estado del ticket"
-                onSelect={(value) => setSelectedStatus(value)}
-                defaultValue={ticketData ? ticketData.estado : ""}
-              />
-              <Autocomplete
-                items={terceros}
-                label="Seleccionar tercero"
-                placeholder="Seleccionar tercero"
-                onSelect={(value) => {
-                  setSelectedTercero(value);
-                  setSelectedTerceroEmail(value.email);
-                }}
-                defaultValue={ticketData ? ticketData.tercero_nombre : ""}
-              />
-              {selectedTerceroEmail && (
-                <h3 className="text-[#4a53a0] text-lg mt-2">
-                  Correo: {selectedTerceroEmail}
-                </h3>
-              )}
-              <Autocomplete
-                items={users}
-                label="Especialista"
-                placeholder="Selecciona un Especialista"
-                onSelect={(value) => {
-                  setSelectedUser(value);
-                  setSelectedUserEmail(value.email);
-                }}
-                defaultValue={ticketData ? ticketData.especialista_nombre : ""}
-              />
-              {selectedUserEmail && (
-                <h3 className="text-[#4a53a0] text-lg mt-2">
-                  Correo: {selectedUserEmail}
-                </h3>
-              )}
+              <div className="flex">
+                <div className="w-1/2 pr-4">
+                  <h2 className="text-blue-600 mb-2">Datos del ticket</h2>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Tema:
+                    </label>
+                    <Autocomplete
+                      items={topics}
+                      label="Tema"
+                      placeholder="Seleccionar tema"
+                      onSelect={(value) => setSelectedTopic(value)}
+                      defaultValue={ticketData ? ticketData.tema : ""}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Estado:
+                    </label>
+                    <Autocomplete
+                      items={statuses.filter(
+                        (status) => status.name !== "Solucionado"
+                      )}
+                      label="Estado del ticket"
+                      placeholder="Selecciona un estado del ticket"
+                      onSelect={(value) => setSelectedStatus(value)}
+                      defaultValue={ticketData ? ticketData.estado : ""}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Tercero:
+                    </label>
+                    <Autocomplete
+                      items={terceros}
+                      label="Seleccionar tercero"
+                      placeholder="Seleccionar tercero"
+                      onSelect={(value) => {
+                        setSelectedTercero(value);
+                        setSelectedTerceroEmail(value.email);
+                      }}
+                      defaultValue={ticketData ? ticketData.tercero_nombre : ""}
+                    />
+                    {selectedTerceroEmail && (
+                      <h3 className="text-[#4a53a0] text-lg mt-2">
+                        {selectedTerceroEmail}
+                      </h3>
+                    )}
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Especialista:
+                    </label>
+                    <Autocomplete
+                      items={users}
+                      label="Seleccionar especialista"
+                      placeholder="Seleccionar especialista"
+                      onSelect={(value) => {
+                        setSelectedUser(value);
+                        setSelectedUserEmail(value.email);
+                      }}
+                      defaultValue={
+                        ticketData ? ticketData.especialista_nombre : ""
+                      }
+                    />
+                    {selectedUserEmail && (
+                      <h3 className="text-[#4a53a0] text-lg mt-2">
+                        {selectedUserEmail}
+                      </h3>
+                    )}
+                  </div>
+                </div>
+                <div className="w-1/2 pl-4">
+                  <div>
+                    <label
+                      htmlFor="descripcion_caso"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Descripción del caso
+                    </label>
+                    <textarea
+                      id="descripcion_caso"
+                      name="descripcion_caso"
+                      rows="3"
+                      className="mt-1 block w-full rounded-md bg-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black p-3"
+                      value={descripcionValue}
+                      onChange={(e) => setDescripcionValue(e.target.value)}
+                    ></textarea>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="solucion_caso"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Solución del caso
+                    </label>
+                    <textarea
+                      id="solucion_caso"
+                      name="solucion_caso"
+                      rows="3"
+                      className="mt-1 block w-full rounded-md bg-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black p-3"
+                      value={solucionValue}
+                      onChange={(e) => setSolucionValue(e.target.value)}
+                    ></textarea>
+                    {finalizeError && (
+                      <div className="text-red-500 text-sm mt-1">
+                        {finalizeError}
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      multiple
+                      style={{ display: "none" }}
+                      onChange={(e) =>
+                        handleImageUpload(e.target.files, setSolucionImages)
+                      }
+                    />
+                    <div
+                      onDrop={(e) => handleDrop(e, setSolucionImages)}
+                      onDragOver={handleDragOver}
+                      className="border-2 border-dashed border-gray-400 rounded-lg p-4 mt-2"
+                      style={{ cursor: "pointer" }}
+                      onClick={handleSelectImagesClick}
+                    >
+                      <p className="text-center text-gray-500">
+                        Arrastra y suelta las imágenes aquí o haz clic para
+                        seleccionar
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap mt-2">
+                      {solucionImages.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`Solucion ${index}`}
+                          className="w-24 h-24 object-cover m-1"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-[#4a53a0] font-bold text-xl">
-                Descripción del caso:
-              </p>
-              <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-white"
-                placeholder="Descripción del caso"
-                value={descripcionValue}
-                onChange={(e) => setDescripcionValue(e.target.value)}
-              />
-            </div>
-            <div>
-              <p className="text-[#4a53a0] font-bold text-xl">
-                Solución del caso:
-              </p>
-              <textarea
-                className="w-full h-[150px] p-2 border border-gray-300 rounded text-black bg-white"
-                placeholder="Solución del caso"
-                value={solucionValue}
-                onChange={(e) => setSolucionValue(e.target.value)}
-              />
-            </div>
-            {finalizeError && (
-              <p className="text-red-500 text-sm">{finalizeError}</p>
-            )}
           </ModalBody>
           <ModalFooter>
-            <Button
-              color="danger"
-              variant="flat"
-              onPress={closeModal}
-              className="text-red-500"
-            >
+            <Button color="danger" variant="flat" onPress={closeModal}>
               Cerrar
             </Button>
-
-            <Button
-              color="primary"
-              onPress={handleUpdate}
-              isDisabled={loadingUpdate}
-            >
-              {loadingUpdate ? (
-                <CircularProgress size="sm" color="white" />
-              ) : (
-                "Guardar cambios"
-              )}
-            </Button>
-            {selectedStatus && selectedStatus.name === "En proceso" && (
+            {ticketData.estado === "En proceso" && (
               <Button
-                className="bg-green-500"
+                color="primary"
                 onPress={handleFinalize}
-                isDisabled={loadingFinalize}
+                disabled={loadingFinalize}
               >
                 {loadingFinalize ? (
                   <CircularProgress size="sm" color="white" />
@@ -306,6 +396,17 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                 )}
               </Button>
             )}
+            <Button
+              color="success"
+              onPress={handleUpdate}
+              disabled={loadingUpdate}
+            >
+              {loadingUpdate ? (
+                <CircularProgress size="sm" color="white" />
+              ) : (
+                "Guardar"
+              )}
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

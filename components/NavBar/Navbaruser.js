@@ -118,15 +118,10 @@ export function Navbaruser() {
             </DropdownItem>
 
             <DropdownItem key="settings">Mi configuracion</DropdownItem>
-            <DropdownItem key="team_settings">
-              Configuracion de equipo
-            </DropdownItem>
             <DropdownItem key="analytics">Estadisticas</DropdownItem>
             <DropdownItem key="configurations" href="/datos">
               Configuracion
             </DropdownItem>
-            <DropdownItem key="help_and_feedback">Ayuda</DropdownItem>
-            {/* Añadir DropdownItem para cerrar sesión con el manejador de eventos */}
             <DropdownItem key="logout" color="danger" onClick={handleLogout}>
               Cerrar sesión
             </DropdownItem>
