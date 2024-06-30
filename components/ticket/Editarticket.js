@@ -14,10 +14,11 @@ import emailjs from "emailjs-com";
 
 export function Editarticket({ ticketData }) {
   const [descripcionValue, setDescripcionValue] = useState(
-    ticketData ? ticketData.descripcion_caso : ""
+    ticketData && ticketData.descripcion_caso ? ticketData.descripcion_caso : ""
   );
+
   const [solucionValue, setSolucionValue] = useState(
-    ticketData ? ticketData.solucion_caso : ""
+    ticketData && ticketData.solucion_caso ? ticketData.solucion_caso : ""
   );
   const [topics, setTopics] = useState([]);
   const [statuses, setStatuses] = useState([]);

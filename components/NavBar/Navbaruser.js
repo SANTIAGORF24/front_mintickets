@@ -103,7 +103,6 @@ export function Navbaruser() {
               as="button"
               className="transition-transform"
               size="sm"
-              src="/assets/img/avatar.png"
             />
           </DropdownTrigger>
           <DropdownMenu

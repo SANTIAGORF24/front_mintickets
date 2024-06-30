@@ -81,16 +81,6 @@ export function Nuevoticket() {
       console.log("Ticket creado:", response.data);
       setTicketCreated(true);
 
-      // Enviar correo a través del backend
-      await axios.post("http://127.0.0.1:5000/send-email", {
-        to_email: selectedUserEmail,
-        cc_email: selectedTerceroEmail,
-        to_name: selectedUser.name,
-        message: descripcionValue,
-        tercero_nombre: selectedTercero.name,
-        tema: selectedTopic.name,
-      });
-
       setTimeout(() => {
         window.location.reload();
       }, 2000);
