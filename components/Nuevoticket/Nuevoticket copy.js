@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Button } from "@nextui-org/react";
+import { Button, CircularProgress } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
 
 export function Nuevoticket() {
@@ -19,6 +19,7 @@ export function Nuevoticket() {
   const [selectedTerceroEmail, setSelectedTerceroEmail] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +61,8 @@ export function Nuevoticket() {
         return;
       }
 
+      setIsLoading(true);
+
       const ticketData = {
         fecha_creacion: new Date().toISOString(),
         tema: selectedTopic.name,
@@ -93,6 +96,8 @@ export function Nuevoticket() {
       }
     } catch (error) {
       console.error("Error al crear el ticket:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,7 +175,7 @@ export function Nuevoticket() {
             </div>
           </div>
           {ticketCreated && (
-            <div className="text-green-600 font-bold text-center">
+            <div className="bg-green-600 text-white font-bold text-center p-2 rounded mb-4">
               Caso creado
             </div>
           )}
@@ -187,8 +192,17 @@ export function Nuevoticket() {
             <Button
               onClick={handleSubmit}
               className="self-center bg-[#4a53a0] text-white w-48 h-12 text-xl rounded-2xl hover:shadow-lg hover:bg-[#666eb5]"
+              disabled={isLoading}
             >
-              Crear Ticket
+              {isLoading ? (
+                <CircularProgress
+                  size="sm"
+                  color="current"
+                  aria-label="Loading..."
+                />
+              ) : (
+                "Crear Ticket"
+              )}
             </Button>
           </div>
         </div>
