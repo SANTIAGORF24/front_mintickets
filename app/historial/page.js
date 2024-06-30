@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import Image from "next/image";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Home = () => {
   const [ticketId, setTicketId] = useState("");
@@ -15,10 +17,32 @@ const Home = () => {
       );
       setTicketData(response.data);
       setError("");
+
+      // Mostrar notificación según el estado del ticket
+      if (response.data.estado === "Creado") {
+        toast.error("Su ticket está en estado Creado", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      } else if (response.data.estado === "En proceso") {
+        toast.warning("Su ticket está en estado En proceso", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      } else if (response.data.estado === "Solucionado") {
+        toast.success("Su ticket ha sido resuelto", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
     } catch (err) {
       console.error(err);
       setError("Ticket no encontrado");
       setTicketData(null);
+      toast.error("Ticket no encontrado", {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
@@ -36,6 +60,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+      <ToastContainer />
       <div className="w-5/6 p-6 shadow-lg bg-white rounded-md flex">
         <div className="mr-10">
           <Image
