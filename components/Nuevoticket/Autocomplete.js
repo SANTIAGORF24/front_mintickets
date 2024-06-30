@@ -5,9 +5,11 @@ const Autocomplete = ({ items, label, placeholder, onSelect }) => {
   const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isRotated, setIsRotated] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Número de elementos por página
 
   useEffect(() => {
-    setFilteredItems(items);
+    setFilteredItems(items.slice(0, itemsPerPage));
   }, [items]);
 
   const handleInputChange = (event) => {
@@ -16,20 +18,34 @@ const Autocomplete = ({ items, label, placeholder, onSelect }) => {
     const filtered = items.filter((item) =>
       item.name.toLowerCase().includes(value.toLowerCase())
     );
-    setFilteredItems(filtered);
+    setFilteredItems(filtered.slice(0, itemsPerPage));
+    setCurrentPage(1); // Reset page when filtering
   };
 
   const handleItemClick = (item) => {
     setInputValue(item.name);
     onSelect(item);
     setIsOpen(false);
-    setIsRotated(true); // Rotating the SVG
-    setTimeout(() => setIsRotated(false), 500); // Reset rotation after 500ms
+    setIsRotated(true);
+    setTimeout(() => setIsRotated(false), 500);
   };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
     setIsRotated(!isRotated);
+    setFilteredItems(items.slice(0, itemsPerPage)); // Mostrar solo los primeros elementos por página al abrir
+    setCurrentPage(1); // Reset page when opening dropdown
+  };
+
+  const loadMoreItems = () => {
+    const startIndex = currentPage * itemsPerPage;
+    const newFilteredItems = items
+      .filter((item) =>
+        item.name.toLowerCase().includes(inputValue.toLowerCase())
+      )
+      .slice(startIndex, startIndex + itemsPerPage);
+    setFilteredItems((prevItems) => [...prevItems, ...newFilteredItems]);
+    setCurrentPage(currentPage + 1);
   };
 
   return (
@@ -45,14 +61,14 @@ const Autocomplete = ({ items, label, placeholder, onSelect }) => {
       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`h-5 w-5 ${isRotated ? "rotate-180" : ""}`} // Adding rotation class dynamically
+          className={`h-5 w-5 ${isRotated ? "rotate-180" : ""}`}
           viewBox="0 0 20 20"
-          fill="#4a53a0" // Changing SVG color to #4a53a0
+          fill="#4a53a0"
           onClick={toggleDropdown}
           style={{
             cursor: "pointer",
             transition: "transform 0.3s ease-in-out",
-          }} // Adding transition for rotation
+          }}
         >
           <path
             fillRule="evenodd"
@@ -72,6 +88,14 @@ const Autocomplete = ({ items, label, placeholder, onSelect }) => {
               {item.name}
             </li>
           ))}
+          {items.length > filteredItems.length && (
+            <li
+              className="p-2 cursor-pointer hover:bg-gray-200 text-black text-center mt-2"
+              onClick={loadMoreItems}
+            >
+              Ver más
+            </li>
+          )}
         </ul>
       )}
     </div>
