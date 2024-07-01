@@ -155,13 +155,38 @@ export function Todostickets() {
 
   const downloadExcel = () => {
     const filteredTickets = getFilteredTickets();
-    const worksheetData = filteredTickets.map((ticket) => ({
-      ...ticket,
-      fecha_creacion: formatDate(ticket.fecha_creacion),
-      fecha_finalizacion: formatDate(ticket.fecha_finalizacion),
-    }));
+    const worksheetData = filteredTickets.map((ticket) => [
+      ticket.id,
+      formatDate(ticket.fecha_creacion),
+      formatDate(ticket.fecha_finalizacion),
+      ticket.tema,
+      ticket.estado,
+      ticket.tercero_nombre,
+      ticket.especialista_nombre,
+      ticket.descripcion_caso,
+      ticket.solucion_caso,
+      ticket.tiempo_de_respuesta,
+      ticket.actitud,
+      ticket.respuesta,
+    ]);
 
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    // Añadir encabezados
+    worksheetData.unshift([
+      "ID",
+      "Fecha de Creación",
+      "Fecha de Finalización",
+      "Tema",
+      "Estado",
+      "Tercero",
+      "Especialista",
+      "Descripción del Caso",
+      "Solución del Caso",
+      "Tiempo de Respuesta",
+      "Actitud",
+      "Respuesta",
+    ]);
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Tickets");
     XLSX.writeFile(workbook, "tickets.xlsx");

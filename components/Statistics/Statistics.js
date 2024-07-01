@@ -130,25 +130,25 @@ const Statistics = ({ ticketsData }) => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h2 className="text-center mb-2">
+            <h2 className="text-center mb-2 text-black">
               Cantidad de tickets en cada estado
             </h2>
             {renderChart(getTicketCountByState(), "Cantidad de tickets")}
           </div>
           <div>
-            <h2 className="text-center mb-2">
+            <h2 className="text-center mb-2  text-black">
               Cantidad de tickets por cada tema
             </h2>
             {renderChart(getTicketCountByTheme(), "Cantidad de tickets")}
           </div>
           <div>
-            <h2 className="text-center mb-2">
+            <h2 className="text-center mb-2  text-black">
               Cantidad de tickets asignado a cada especialista
             </h2>
             {renderChart(getTicketCountBySpecialist(), "Cantidad de tickets")}
           </div>
           <div>
-            <h2 className="text-center mb-2">
+            <h2 className="text-center mb-2  text-black">
               Cantidad de tickets solucionado por cada especialista
             </h2>
             {renderChart(

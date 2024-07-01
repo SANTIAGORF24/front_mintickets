@@ -88,11 +88,15 @@ export function TicketCharts({ tickets }) {
     <div>
       <div className="flex flex-wrap justify-around">
         <div className="w-full md:w-[45%] mb-8">
-          <h3 className="text-xl font-semibold mb-2">Tickets por Tema</h3>
+          <h3 className="text-xl font-semibold mb-2  text-black">
+            Tickets por Tema
+          </h3>
           <ChartComponent data={temaChartData} options={options} />
         </div>
         <div className="w-full md:w-[45%] mb-8">
-          <h3 className="text-xl font-semibold mb-2">Tickets por Estado</h3>
+          <h3 className="text-xl font-semibold mb-2  text-black">
+            Tickets por Estado
+          </h3>
           <ChartComponent data={estadoChartData} options={options} />
         </div>
       </div>
