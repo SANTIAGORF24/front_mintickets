@@ -114,10 +114,11 @@ export function Navbaruser() {
               <p className="font-semibold">Registrado como</p>
               <p className="font-semibold">{userFullName}</p>{" "}
               <p className="text-gray-500">{userEmail}</p>{" "}
-              {/* Mostrar el correo del usuario */}
             </DropdownItem>
-
-            <DropdownItem key="settings">Mi configuracion</DropdownItem>
+            S
+            <DropdownItem key="settings" href="/perfil">
+              Mi configuracion
+            </DropdownItem>
             <DropdownItem key="analytics">Estadisticas</DropdownItem>
             <DropdownItem key="configurations" href="/datos">
               Configuracion

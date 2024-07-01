@@ -3,9 +3,11 @@ import axios from "axios";
 import { Input } from "@nextui-org/react";
 import { EyeFilledIcon } from "../login/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "../login/EyeSlashFilledIcon";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export function Register() {
-  const [isVisible, setIsVisible] = React.useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const [username, setUsername] = useState("");
@@ -13,8 +15,6 @@ export function Register() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [foundUser, setFoundUser] = useState(null);
 
   const buscarUsuario = async () => {
@@ -37,20 +37,18 @@ export function Register() {
           `http://127.0.0.1:5000/auth/users/lastName/${lastName}`
         );
       } else {
-        setError("Por favor, ingrese al menos un criterio de búsqueda");
+        toast.error("Por favor, ingrese al menos un criterio de búsqueda");
         return;
       }
 
       setFoundUser(response.data);
       setUsername(response.data.username);
-      setPassword(response.data.password);
       setEmail(response.data.email);
       setFirstName(response.data.first_name);
       setLastName(response.data.last_name);
-      setSuccessMessage("");
-      setError("");
+      toast.success("Usuario encontrado");
     } catch (error) {
-      setError("Usuario no encontrado");
+      toast.error("Usuario no encontrado");
       setFoundUser(null);
       setUsername("");
       setPassword("");
@@ -66,19 +64,18 @@ export function Register() {
         await axios.delete(
           `http://127.0.0.1:5000/auth/users/${foundUser.username}`
         );
-        setSuccessMessage("Usuario eliminado con éxito");
+        toast.success("Usuario eliminado con éxito");
         setFoundUser(null);
         setUsername("");
         setPassword("");
         setEmail("");
         setFirstName("");
         setLastName("");
-        setError("");
       } else {
-        setError("No se ha encontrado ningún usuario");
+        toast.error("No se ha encontrado ningún usuario");
       }
     } catch (error) {
-      setError("Hubo un problema al eliminar el usuario");
+      toast.error("Hubo un problema al eliminar el usuario");
       console.error(error);
     }
   };
@@ -87,7 +84,7 @@ export function Register() {
     e.preventDefault();
 
     if (!username || !password || !email || !firstName || !lastName) {
-      setError("Por favor, complete todos los campos obligatorios");
+      toast.error("Por favor, complete todos los campos obligatorios");
       return;
     }
 
@@ -102,28 +99,25 @@ export function Register() {
 
       if (foundUser) {
         const response = await axios.put(
-          `http://127.0.0.1:5000/auth/users/${foundUser.username}`,
+          `http://127.0.0.1:5000/auth/users/username/${foundUser.username}`,
           userData
         );
-        setSuccessMessage("¡Usuario actualizado con éxito!");
-        setError("");
+        toast.success("¡Usuario actualizado con éxito!");
         console.log(response.data.message);
       } else {
         const response = await axios.post(
           "http://127.0.0.1:5000/auth/register",
           userData
         );
-        setSuccessMessage("¡Usuario registrado con éxito!");
-        setError("");
+        toast.success("¡Usuario registrado con éxito!");
         console.log(response.data.message);
       }
     } catch (error) {
       if (error.response && error.response.status === 409) {
-        setError("El usuario ya existe");
+        toast.error("El usuario ya existe");
       } else {
-        setError("Hubo un problema al procesar tu solicitud");
+        toast.error("Hubo un problema al procesar tu solicitud");
       }
-      setSuccessMessage("");
     }
   };
 
@@ -134,24 +128,21 @@ export function Register() {
     setFirstName("");
     setLastName("");
     setFoundUser(null);
-    setError("");
-    setSuccessMessage("");
+    toast.info("Campos limpiados");
   };
+
   return (
     <div className="flex justify-center items-center text-black py-10">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4">Registro de Usuario</h2>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        {successMessage && (
-          <div className="text-green-500 mb-4">{successMessage}</div>
-        )}
+        <ToastContainer />
         <form onSubmit={handleSubmit}>
-          <div className="mb-4 ">
+          <div className="mb-4">
             <label htmlFor="username" className="block font-bold mb-2">
               Usuario:
             </label>
             <Input
-              type="username"
+              type="text"
               label="Usuario"
               variant="bordered"
               value={username}
@@ -195,7 +186,6 @@ export function Register() {
               type="email"
               label="Email"
               variant="bordered"
-              defaultValue="@mindeporte.gov.co"
               className="max-w-xs text-black"
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -206,7 +196,7 @@ export function Register() {
             </label>
             <Input
               value={firstName}
-              type="username"
+              type="text"
               label="Nombres"
               variant="bordered"
               onChange={(e) => setFirstName(e.target.value)}
@@ -219,7 +209,7 @@ export function Register() {
             </label>
             <Input
               value={lastName}
-              type="username"
+              type="text"
               label="Apellidos"
               variant="bordered"
               onChange={(e) => setLastName(e.target.value)}
