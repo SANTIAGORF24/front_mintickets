@@ -119,7 +119,9 @@ export function Navbaruser() {
             <DropdownItem key="settings" href="/perfil">
               Mi configuracion
             </DropdownItem>
-            <DropdownItem key="analytics">Estadisticas</DropdownItem>
+            <DropdownItem key="analytics" href="/estadisticas">
+              Estadisticas
+            </DropdownItem>
             <DropdownItem key="configurations" href="/datos">
               Configuracion
             </DropdownItem>

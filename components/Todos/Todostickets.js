@@ -21,9 +21,9 @@ import { Editarticket } from "../ticket/Editarticket";
 import * as XLSX from "xlsx";
 
 const statusColorMap = {
-  Creado: "danger", // Rojo
-  "En proceso": "warning", // Naranja
-  Solucionado: "success", // Verde
+  Creado: "danger",
+  "En proceso": "warning",
+  Solucionado: "success",
 };
 
 const columns = [
@@ -57,7 +57,16 @@ export function Todostickets() {
     axios
       .get("http://127.0.0.1:5000/tickets")
       .then((response) => {
-        setTickets(response.data);
+        const cleanedTickets = response.data.map((ticket) => ({
+          ...ticket,
+          fecha_creacion: ticket.fecha_creacion
+            ? new Date(ticket.fecha_creacion)
+            : null,
+          fecha_finalizacion: ticket.fecha_finalizacion
+            ? new Date(ticket.fecha_finalizacion)
+            : null,
+        }));
+        setTickets(cleanedTickets);
       })
       .catch((error) => {
         console.error("Error fetching tickets:", error);
@@ -68,7 +77,6 @@ export function Todostickets() {
     axios
       .delete(`http://127.0.0.1:5000/tickets/${id}`)
       .then((response) => {
-        // Actualiza el estado local de tickets excluyendo el ticket eliminado
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)
         );
@@ -134,12 +142,9 @@ export function Todostickets() {
   };
 
   const handleRowsPerPageChange = (e) => {
-    const value = e.target.value;
+    const value = parseInt(e.target.value);
     setRowsPerPage(value);
-    setPage(1); // Reinicia la página al cambiar el número de filas por página
-    if (value === "todos") {
-      setRowsPerPage(filteredTickets.length); // Muestra todos los tickets sin paginación
-    }
+    setPage(1);
   };
 
   const clearFilters = () => {
@@ -149,85 +154,23 @@ export function Todostickets() {
   };
 
   const downloadExcel = () => {
-    const filteredStartDate = startDate ? new Date(startDate) : null;
-    const filteredEndDate = endDate ? new Date(endDate) : null;
-
-    const filteredTickets = tickets.filter((ticket) => {
-      const ticketStartDate = new Date(ticket.fecha_creacion);
-      const ticketEndDate = new Date(ticket.fecha_finalizacion);
-      return (
-        (!filteredStartDate || ticketStartDate >= filteredStartDate) &&
-        (!filteredEndDate || ticketEndDate <= filteredEndDate) &&
-        (ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.estado.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.tercero_nombre
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          ticket.especialista_nombre
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          ticket.descripcion_caso
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          ticket.solucion_caso
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          ticket.tiempo_de_respuesta
-            ?.toString()
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) || // New column filter
-          ticket.actitud
-            ?.toString()
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) || // New column filter
-          ticket.respuesta
-            ?.toString()
-            .toLowerCase()
-            .includes(filterValue.toLowerCase())) // New column filter
-      );
-    });
-
-    const orderedTickets = filteredTickets.map((ticket) => ({
-      id: ticket.id,
-      fecha_creacion: ticket.fecha_creacion,
-      fecha_finalizacion: ticket.fecha_finalizacion,
-      tema: ticket.tema,
-      estado: ticket.estado,
-      tercero_nombre: ticket.tercero_nombre,
-      especialista_nombre: ticket.especialista_nombre,
-      descripcion_caso: ticket.descripcion_caso,
-      solucion_caso: ticket.solucion_caso,
-      tiempo_de_respuesta: ticket.tiempo_de_respuesta || "", // New column, handle undefined or null
-      actitud: ticket.actitud || "", // New column, handle undefined or null
-      respuesta: ticket.respuesta || "", // New column, handle undefined or null
+    const filteredTickets = getFilteredTickets();
+    const worksheetData = filteredTickets.map((ticket) => ({
+      ...ticket,
+      fecha_creacion: formatDate(ticket.fecha_creacion),
+      fecha_finalizacion: formatDate(ticket.fecha_finalizacion),
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(orderedTickets, {
-      header: columns.map((column) => column.name),
-    });
-
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Tickets");
-
     XLSX.writeFile(workbook, "tickets.xlsx");
   };
 
-  const headerColumns = columns.map((column) => (
-    <TableColumn
-      key={column.uid}
-      align={column.uid === "actions" ? "center" : "start"}
-    >
-      {column.name}
-    </TableColumn>
-  ));
-
-  const filteredTickets = tickets.filter((ticket) => {
-    const ticketStartDate = new Date(ticket.fecha_creacion);
-    const ticketEndDate = new Date(ticket.fecha_finalizacion);
-    return (
-      (!startDate || ticketStartDate >= startDate) &&
-      (!endDate || ticketEndDate <= endDate) &&
-      (ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
+  const getFilteredTickets = () => {
+    return tickets.filter((ticket) => {
+      const matchesFilter =
+        ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
         ticket.estado.toLowerCase().includes(filterValue.toLowerCase()) ||
         ticket.tercero_nombre
           .toLowerCase()
@@ -242,25 +185,46 @@ export function Todostickets() {
           ticket.solucion_caso
             .toLowerCase()
             .includes(filterValue.toLowerCase())) ||
-        ticket.tiempo_de_respuesta
-          ?.toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase()) || // New column filter
-        ticket.actitud
-          ?.toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase()) || // New column filter
-        ticket.respuesta
-          ?.toString()
-          .toLowerCase()
-          .includes(filterValue.toLowerCase())) // New column filter
-    );
-  });
+        (ticket.tiempo_de_respuesta &&
+          ticket.tiempo_de_respuesta
+            .toString()
+            .toLowerCase()
+            .includes(filterValue.toLowerCase())) ||
+        (ticket.actitud &&
+          ticket.actitud
+            .toString()
+            .toLowerCase()
+            .includes(filterValue.toLowerCase())) ||
+        (ticket.respuesta &&
+          ticket.respuesta
+            .toString()
+            .toLowerCase()
+            .includes(filterValue.toLowerCase()));
 
+      const matchesDateRange =
+        (!startDate ||
+          (ticket.fecha_creacion && ticket.fecha_creacion >= startDate)) &&
+        (!endDate ||
+          (ticket.fecha_finalizacion && ticket.fecha_finalizacion <= endDate));
+
+      return matchesFilter && matchesDateRange;
+    });
+  };
+
+  const filteredTickets = getFilteredTickets();
   const paginatedTickets = filteredTickets.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
+
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    return date.toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
   return (
     <div className="w-full">
@@ -297,7 +261,16 @@ export function Todostickets() {
         </div>
       </div>
       <Table className="text-black">
-        <TableHeader>{headerColumns}</TableHeader>
+        <TableHeader>
+          {columns.map((column) => (
+            <TableColumn
+              key={column.uid}
+              align={column.uid === "actions" ? "center" : "start"}
+            >
+              {column.name}
+            </TableColumn>
+          ))}
+        </TableHeader>
         <TableBody>
           {paginatedTickets.map((ticket) => (
             <TableRow key={ticket.id}>
@@ -349,8 +322,3 @@ export function Todostickets() {
     </div>
   );
 }
-
-const formatDate = (dateString) => {
-  const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-  return new Date(dateString).toLocaleDateString(undefined, options);
-};
