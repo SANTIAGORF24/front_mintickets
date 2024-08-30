@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",   // Agrega esta línea para definir la base de las rutas
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["src/*"]  // Asegúrate de que la ruta corresponda a la estructura de tu proyecto
     }
   }
 }
