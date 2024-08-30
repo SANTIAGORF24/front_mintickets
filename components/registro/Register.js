@@ -22,19 +22,19 @@ export function Register() {
       let response;
       if (username) {
         response = await axios.get(
-          `http://127.0.0.1:5000/auth/users/username/${username}`
+          `backend_mintickets.railway.internal/auth/users/username/${username}`
         );
       } else if (email) {
         response = await axios.get(
-          `http://127.0.0.1:5000/auth/users/email/${email}`
+          `backend_mintickets.railway.internal/auth/users/email/${email}`
         );
       } else if (firstName) {
         response = await axios.get(
-          `http://127.0.0.1:5000/auth/users/firstName/${firstName}`
+          `backend_mintickets.railway.internal/auth/users/firstName/${firstName}`
         );
       } else if (lastName) {
         response = await axios.get(
-          `http://127.0.0.1:5000/auth/users/lastName/${lastName}`
+          `backend_mintickets.railway.internal/auth/users/lastName/${lastName}`
         );
       } else {
         toast.error("Por favor, ingrese al menos un criterio de búsqueda");
@@ -62,7 +62,7 @@ export function Register() {
     try {
       if (foundUser) {
         await axios.delete(
-          `http://127.0.0.1:5000/auth/users/${foundUser.username}`
+          `backend_mintickets.railway.internal/auth/users/${foundUser.username}`
         );
         toast.success("Usuario eliminado con éxito");
         setFoundUser(null);
@@ -99,14 +99,14 @@ export function Register() {
 
       if (foundUser) {
         const response = await axios.put(
-          `http://127.0.0.1:5000/auth/users/username/${foundUser.username}`,
+          `backend_mintickets.railway.internal/auth/users/username/${foundUser.username}`,
           userData
         );
         toast.success("¡Usuario actualizado con éxito!");
         console.log(response.data.message);
       } else {
         const response = await axios.post(
-          "http://127.0.0.1:5000/auth/register",
+          "backend_mintickets.railway.internal/auth/register",
           userData
         );
         toast.success("¡Usuario registrado con éxito!");
