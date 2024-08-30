@@ -16,6 +16,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "baseUrl": ".",  // Agregar baseUrl
+    "paths": {
+      "@/*": ["src/*"]  // Ajustar el alias según tu estructura de carpetas
+    },
     "plugins": [
       {
         "name": "next"
