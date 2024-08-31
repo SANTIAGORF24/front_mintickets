@@ -20,7 +20,7 @@ export function Login() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        "backendmintickets-production.up.railway.app/auth/login",
+        "https://backendmintickets-production.up.railway.app/auth/login",
         {
           method: "POST",
           headers: {
