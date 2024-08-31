@@ -115,7 +115,7 @@ export function Tickets() {
   const deleteTicket = (id) => {
     axios
       .delete(
-        `https://backendmintickets-production.up.railway.app/tickets/${id}`
+        `http://backendmintickets-production.up.railway.app/tickets/${id}`
       )
       .then(() => {
         setTickets((prevTickets) =>
