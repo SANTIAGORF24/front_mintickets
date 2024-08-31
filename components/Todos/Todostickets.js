@@ -55,7 +55,7 @@ export function Todostickets() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:5000/tickets")
+      .get("https://backendmintickets-production.up.railway.app/tickets")
       .then((response) => {
         const cleanedTickets = response.data.map((ticket) => ({
           ...ticket,
@@ -75,7 +75,9 @@ export function Todostickets() {
 
   const deleteTicket = (id) => {
     axios
-      .delete(`http://127.0.0.1:5000/tickets/${id}`)
+      .delete(
+        `https://backendmintickets-production.up.railway.app/tickets/${id}`
+      )
       .then((response) => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)

@@ -47,21 +47,23 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
+        const topicsResponse = await axios.get(
+          "https://backendmintickets-production.up.railway.app/topics"
+        );
         setTopics(topicsResponse.data.topics);
 
         const statusesResponse = await axios.get(
-          "http://127.0.0.1:5000/status"
+          "https://backendmintickets-production.up.railway.app/status"
         );
         setStatuses(statusesResponse.data.status);
 
         const tercerosResponse = await axios.get(
-          "http://127.0.0.1:5000/terceros"
+          "https://backendmintickets-production.up.railway.app/terceros"
         );
         setTerceros(tercerosResponse.data.terceros);
 
         const usersResponse = await axios.get(
-          "http://127.0.0.1:5000/auth/users/names"
+          "https://backendmintickets-production.up.railway.app/auth/users/names"
         );
         setUsers(usersResponse.data.user_names);
       } catch (error) {
@@ -132,7 +134,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.patch(
-        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
+        `https://backendmintickets-production.up.railway.app/tickets/${ticketDataToUpdate.id}`,
         ticketDataToUpdate
       );
 
@@ -184,7 +186,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.put(
-        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}/finalize`,
+        `https://backendmintickets-production.up.railway.app/tickets/${ticketDataToUpdate.id}/finalize`,
         ticketDataToUpdate
       );
 

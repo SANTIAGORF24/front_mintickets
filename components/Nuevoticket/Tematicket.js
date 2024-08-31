@@ -5,7 +5,7 @@ export function Tematicket() {
   const [topics, setTopics] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/topics") // Ruta para obtener los temas desde tu aplicación Flask
+    fetch("https://backendmintickets-production.up.railway.app/topics") // Ruta para obtener los temas desde tu aplicación Flask
       .then((response) => response.json())
       .then((data) => {
         setTopics(data.topics);

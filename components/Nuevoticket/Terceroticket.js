@@ -5,7 +5,7 @@ export function Terceroticket() {
   const [terceros, setTerceros] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/terceros") // Ruta para obtener los terceros desde tu aplicación Flask
+    fetch("https://backendmintickets-production.up.railway.app/terceros") // Ruta para obtener los terceros desde tu aplicación Flask
       .then((response) => response.json())
       .then((data) => {
         setTerceros(data.terceros);

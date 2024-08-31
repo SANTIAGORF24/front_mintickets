@@ -30,7 +30,9 @@ export function Estados() {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/status");
+      const response = await fetch(
+        "https://backendmintickets-production.up.railway.app/status"
+      );
       if (response.ok) {
         const data = await response.json();
         setStatus(data.status);
@@ -53,13 +55,16 @@ export function Estados() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:5000/status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: newStatu }),
-      });
+      const response = await fetch(
+        "https://backendmintickets-production.up.railway.app/status",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: newStatu }),
+        }
+      );
       if (response.ok) {
         setNewStatu("");
         fetchStatus();
@@ -73,9 +78,12 @@ export function Estados() {
 
   const handleDeleteStatu = async (statuId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/status/${statuId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `https://backendmintickets-production.up.railway.app/status/${statuId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (response.ok) {
         fetchStatus();
       } else {
@@ -94,7 +102,7 @@ export function Estados() {
   const handleUpdateStatu = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/status/${editingStatuId}`,
+        `https://backendmintickets-production.up.railway.app/status/${editingStatuId}`,
         {
           method: "PUT",
           headers: {

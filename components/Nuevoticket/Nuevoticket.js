@@ -29,16 +29,18 @@ export function Nuevoticket() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
+        const topicsResponse = await axios.get(
+          "https://backendmintickets-production.up.railway.app/topics"
+        );
         setTopics(topicsResponse.data.topics);
 
         const tercerosResponse = await axios.get(
-          "http://127.0.0.1:5000/terceros"
+          "https://backendmintickets-production.up.railway.app/terceros"
         );
         setTerceros(tercerosResponse.data.terceros);
 
         const usersResponse = await axios.get(
-          "http://127.0.0.1:5000/auth/users/names"
+          "https://backendmintickets-production.up.railway.app/auth/users/names"
         );
         setUsers(usersResponse.data.user_names);
       } catch (error) {
@@ -100,7 +102,7 @@ export function Nuevoticket() {
       console.log("Enviando datos del ticket:", ticketData);
 
       const response = await axios.post(
-        "http://127.0.0.1:5000/tickets/register",
+        "https://backendmintickets-production.up.railway.app/tickets/register",
         ticketData
       );
       console.log(response.data);

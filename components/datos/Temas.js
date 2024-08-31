@@ -30,7 +30,9 @@ export function Temas() {
 
   const fetchTopics = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/topics");
+      const response = await fetch(
+        "https://backendmintickets-production.up.railway.app/topics"
+      );
       if (response.ok) {
         const data = await response.json();
         setTopics(data.topics);
@@ -53,13 +55,16 @@ export function Temas() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:5000/topics", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: newTopic }),
-      });
+      const response = await fetch(
+        "https://backendmintickets-production.up.railway.app/topics",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: newTopic }),
+        }
+      );
       if (response.ok) {
         setNewTopic("");
         fetchTopics();
@@ -73,9 +78,12 @@ export function Temas() {
 
   const handleDeleteTopic = async (topicId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/topics/${topicId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `https://backendmintickets-production.up.railway.app/topics/${topicId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (response.ok) {
         fetchTopics();
       } else {
@@ -94,7 +102,7 @@ export function Temas() {
   const handleUpdateTopic = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/topics/${editingTopicId}`,
+        `https://backendmintickets-production.up.railway.app/topics/${editingTopicId}`,
         {
           method: "PUT",
           headers: {
