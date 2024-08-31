@@ -18,6 +18,8 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 
+const API_BASE_URL = "https://backendmintickets-production.up.railway.app";
+
 const statusColorMap = {
   Creado: "danger",
   "En proceso": "warning",
@@ -46,52 +48,56 @@ export function Tickets() {
     useState("");
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-        if (token) {
-          const response = await fetch(
-            "https://backendmintickets-production.up.railway.app/auth/user",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          const data = await response.json();
-          if (response.ok) {
-            setUserFullName(data.full_name);
-            setUserEmail(data.email);
-            setUserId(data.id);
-          } else {
-            console.error(data.message);
-          }
-        }
-      } catch (error) {
-        console.error("Error al obtener los datos del usuario:", error);
-      }
-    };
-
     fetchUserData();
+    fetchTickets();
   }, []);
 
   useEffect(() => {
+    filterTickets();
+  }, [tickets, filterValue, userFullName]);
+
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        const response = await fetch(`${API_BASE_URL}/auth/user`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setUserFullName(data.full_name);
+          setUserEmail(data.email);
+          setUserId(data.id);
+        } else {
+          setError(data.message);
+        }
+      }
+    } catch (error) {
+      setError("Error al obtener los datos del usuario");
+      console.error("Error al obtener los datos del usuario:", error);
+    }
+  };
+
+  const fetchTickets = async () => {
     setIsLoading(true);
-    axios
-      .get("https://backendmintickets-production.up.railway.app/tickets")
-      .then((response) => {
-        setTickets(response.data);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching tickets:", error);
-        setIsLoading(false);
-      });
-  }, []);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/tickets`);
+      setTickets(response.data);
+    } catch (error) {
+      setError(
+        "Error al cargar los tickets. Por favor, intente de nuevo más tarde."
+      );
+      console.error("Error fetching tickets:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  useEffect(() => {
+  const filterTickets = () => {
     const filtered = tickets.filter(
       (ticket) =>
         ticket.especialista_nombre.toLowerCase() ===
@@ -110,21 +116,18 @@ export function Tickets() {
             .includes(filterValue.toLowerCase()))
     );
     setFilteredTickets(filtered);
-  }, [tickets, filterValue, userFullName]);
+  };
 
-  const deleteTicket = (id) => {
-    axios
-      .delete(
-        `https://backendmintickets-production.up.railway.app/tickets/${id}`
-      )
-      .then(() => {
-        setTickets((prevTickets) =>
-          prevTickets.filter((ticket) => ticket.id !== id)
-        );
-      })
-      .catch((error) => {
-        console.error("Error deleting ticket:", error);
-      });
+  const deleteTicket = async (id) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/tickets/${id}`);
+      setTickets((prevTickets) =>
+        prevTickets.filter((ticket) => ticket.id !== id)
+      );
+    } catch (error) {
+      setError("Error al eliminar el ticket. Por favor, intente de nuevo.");
+      console.error("Error deleting ticket:", error);
+    }
   };
 
   const openModalWithDescription = (id, description) => {
@@ -179,6 +182,10 @@ export function Tickets() {
 
   if (isLoading) {
     return <div>Cargando tickets...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   return (
