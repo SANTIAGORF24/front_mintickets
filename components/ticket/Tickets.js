@@ -78,10 +78,15 @@ export function Tickets() {
 
   useEffect(() => {
     setIsLoading(true);
-    axios
-      .get(`${BACKEND_URL}tickets`)
+    fetch(`${BACKEND_URL}tickets`)
       .then((response) => {
-        setTickets(response.data);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setTickets(data);
         setIsLoading(false);
       })
       .catch((error) => {
