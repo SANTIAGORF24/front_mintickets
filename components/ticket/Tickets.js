@@ -18,6 +18,8 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 
+const BACKEND_URL = "https://backendmintickets-production.up.railway.app";
+
 const statusColorMap = {
   Creado: "danger",
   "En proceso": "warning",
@@ -52,14 +54,11 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const response = await fetch(
-            "https://backendmintickets-production.up.railway.app/auth/user",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const response = await fetch(`${BACKEND_URL}/auth/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           const data = await response.json();
           if (response.ok) {
             setUserFullName(data.full_name);
@@ -80,7 +79,7 @@ export function Tickets() {
   useEffect(() => {
     setIsLoading(true);
     axios
-      .get("https://backendmintickets-production.up.railway.app/tickets")
+      .get(`${BACKEND_URL}/tickets`)
       .then((response) => {
         setTickets(response.data);
         setIsLoading(false);
@@ -114,9 +113,7 @@ export function Tickets() {
 
   const deleteTicket = (id) => {
     axios
-      .delete(
-        `https://backendmintickets-production.up.railway.app/tickets/${id}`
-      )
+      .delete(`${BACKEND_URL}/tickets/${id}`)
       .then(() => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)
