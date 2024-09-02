@@ -48,32 +48,28 @@ export function Tickets() {
     useState("");
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("No access token found");
+        if (token) {
+          const response = await fetch(`${BACKEND_URL}auth/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setUserFullName(data.full_name);
+            setUserEmail(data.email);
+            setUserId(data.id);
+          } else {
+            console.error(data.message);
+          }
         }
-        const response = await fetch(`${BACKEND_URL}auth/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setUserFullName(data.full_name);
-        setUserEmail(data.email);
-        setUserId(data.id);
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);
-        setError(
-          "Error al cargar datos del usuario. Por favor, inténtelo de nuevo."
-        );
       }
     };
 
@@ -81,33 +77,22 @@ export function Tickets() {
   }, []);
 
   useEffect(() => {
-    const fetchTickets = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("No access token found");
-        }
-        const response = await fetch(`${BACKEND_URL}tickets`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    setIsLoading(true);
+    fetch(`${BACKEND_URL}tickets`)
+      .then((response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error("Network response was not ok");
         }
-        const data = await response.json();
+        return response.json();
+      })
+      .then((data) => {
         setTickets(data);
-      } catch (error) {
-        console.error("Error fetching tickets:", error);
-        setError("Error al cargar tickets. Por favor, inténtelo de nuevo.");
-      } finally {
         setIsLoading(false);
-      }
-    };
-
-    fetchTickets();
+      })
+      .catch((error) => {
+        console.error("Error fetching tickets:", error);
+        setIsLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -131,24 +116,17 @@ export function Tickets() {
     setFilteredTickets(filtered);
   }, [tickets, filterValue, userFullName]);
 
-  const deleteTicket = async (id) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-      await axios.delete(`${BACKEND_URL}tickets/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  const deleteTicket = (id) => {
+    axios
+      .delete(`${BACKEND_URL}tickets/${id}`)
+      .then(() => {
+        setTickets((prevTickets) =>
+          prevTickets.filter((ticket) => ticket.id !== id)
+        );
+      })
+      .catch((error) => {
+        console.error("Error deleting ticket:", error);
       });
-      setTickets((prevTickets) =>
-        prevTickets.filter((ticket) => ticket.id !== id)
-      );
-    } catch (error) {
-      console.error("Error deleting ticket:", error);
-      setError("Error al eliminar el ticket. Por favor, inténtelo de nuevo.");
-    }
   };
 
   const openModalWithDescription = (id, description) => {
@@ -205,17 +183,13 @@ export function Tickets() {
     return <div>Cargando tickets...</div>;
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
     <div className="w-full">
       <div>
         <div className="flex justify-between items-center gap-3 mb-4">
           <Input
             className="w-[44%]"
-            placeholder="Buscar..."
+            placeholder="Search..."
             value={filterValue}
             onValueChange={handleSearchChange}
             isClearable
@@ -280,7 +254,7 @@ export function Tickets() {
         <div className="flex justify-between items-center mt-4 text-black">
           <div>
             <label>
-              Filas por página:
+              Rows por pagina:
               <select value={rowsPerPage} onChange={handleRowsPerPageChange}>
                 <option value="5">5</option>
                 <option value="10">10</option>
