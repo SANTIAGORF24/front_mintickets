@@ -48,22 +48,22 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     const fetchData = async () => {
       try {
         const topicsResponse = await axios.get(
-          "https://backend-mintickets.vercel.app/topics"
+          "https://backendmintickets-production.up.railway.app/topics"
         );
         setTopics(topicsResponse.data.topics);
 
         const statusesResponse = await axios.get(
-          "https://backend-mintickets.vercel.app/status"
+          "https://backendmintickets-production.up.railway.app/status"
         );
         setStatuses(statusesResponse.data.status);
 
         const tercerosResponse = await axios.get(
-          "https://backend-mintickets.vercel.app/terceros"
+          "https://backendmintickets-production.up.railway.app/terceros"
         );
         setTerceros(tercerosResponse.data.terceros);
 
         const usersResponse = await axios.get(
-          "https://backend-mintickets.vercel.app/auth/users/names"
+          "https://backendmintickets-production.up.railway.app/auth/users/names"
         );
         setUsers(usersResponse.data.user_names);
       } catch (error) {
@@ -134,7 +134,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.patch(
-        `https://backend-mintickets.vercel.app/tickets/${ticketDataToUpdate.id}`,
+        `https://backendmintickets-production.up.railway.app/tickets/${ticketDataToUpdate.id}`,
         ticketDataToUpdate
       );
 
@@ -186,7 +186,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.put(
-        `https://backend-mintickets.vercel.app/tickets/${ticketDataToUpdate.id}/finalize`,
+        `https://backendmintickets-production.up.railway.app/tickets/${ticketDataToUpdate.id}/finalize`,
         ticketDataToUpdate
       );
 

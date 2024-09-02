@@ -26,34 +26,30 @@ export function Navbaruser() {
 
   const fetchUserData = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token"); // Obtener el token de acceso del almacenamiento local
 
-      if (!token) {
-        console.error("No se encontró el token de acceso.");
-        return;
-      }
+      if (token) {
+        const response = await fetch(
+          "https://backendmintickets-production.up.railway.app/auth/user",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      const response = await fetch(
-        "https://backend-mintickets.vercel.app/auth/user",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const data = await response.json();
+
+        if (response.ok) {
+          setUserFullName(data.full_name); // Almacenar el nombre completo del usuario
+          setUserEmail(data.email); // Almacenar el correo del usuario
+          setUserId(data.id); // Almacenar el ID del usuario
+          console.log("Nombre completo del usuario:", data.full_name);
+          console.log("Correo del usuario:", data.email);
+          console.log("ID del usuario:", data.id); // Mostrar el ID del usuario en la consola
+        } else {
+          console.error(data.message);
         }
-      );
-
-      const data = await response.json();
-      console.log("Datos de la respuesta:", data);
-
-      if (response.ok) {
-        setUserFullName(data.full_name);
-        setUserEmail(data.email);
-        setUserId(data.id);
-        console.log("Nombre completo del usuario:", data.full_name);
-        console.log("Correo del usuario:", data.email);
-        console.log("ID del usuario:", data.id);
-      } else {
-        console.error("Error:", data.message);
       }
     } catch (error) {
       console.error("Error al obtener los datos del usuario:", error);
