@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     axios
-      .get("https://backendmintickets-production.up.railway.app/tickets")
+      .get("https://backend-mintickets.vercel.app/tickets")
       .then((response) => {
         setTicketsData(response.data);
         setLoading(false);

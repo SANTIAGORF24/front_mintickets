@@ -55,7 +55,7 @@ export function Todostickets() {
 
   useEffect(() => {
     axios
-      .get("https://backendmintickets-production.up.railway.app/tickets")
+      .get("https://backend-mintickets.vercel.app/tickets")
       .then((response) => {
         const cleanedTickets = response.data.map((ticket) => ({
           ...ticket,
@@ -75,9 +75,7 @@ export function Todostickets() {
 
   const deleteTicket = (id) => {
     axios
-      .delete(
-        `https://backendmintickets-production.up.railway.app/tickets/${id}`
-      )
+      .delete(`https://backend-mintickets.vercel.app/tickets/${id}`)
       .then((response) => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)
