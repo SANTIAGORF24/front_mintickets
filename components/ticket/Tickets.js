@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import AxiosInstance from "components/AxiosInstance.js"; // Importa la instancia personalizada
+import axios from "axios";
 import {
   Table,
   TableHeader,
@@ -17,6 +17,8 @@ import { DeleteIcon, EditIcon, EyeIcon } from "./Iconsactions";
 import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
+
+const BACKEND_URL = "https://backendmintickets-production.up.railway.app/";
 
 const statusColorMap = {
   Creado: "danger",
@@ -52,15 +54,19 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const response = await AxiosInstance.get("auth/user", {
+          const response = await fetch(`${BACKEND_URL}auth/user`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          const data = response.data;
-          setUserFullName(data.full_name);
-          setUserEmail(data.email);
-          setUserId(data.id);
+          const data = await response.json();
+          if (response.ok) {
+            setUserFullName(data.full_name);
+            setUserEmail(data.email);
+            setUserId(data.id);
+          } else {
+            console.error(data.message);
+          }
         }
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);
@@ -72,9 +78,15 @@ export function Tickets() {
 
   useEffect(() => {
     setIsLoading(true);
-    AxiosInstance.get("tickets")
+    fetch(`${BACKEND_URL}tickets`)
       .then((response) => {
-        setTickets(response.data);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setTickets(data);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -105,7 +117,8 @@ export function Tickets() {
   }, [tickets, filterValue, userFullName]);
 
   const deleteTicket = (id) => {
-    AxiosInstance.delete(`tickets/${id}`)
+    axios
+      .delete(`${BACKEND_URL}tickets/${id}`)
       .then(() => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)
