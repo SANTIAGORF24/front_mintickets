@@ -54,19 +54,15 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const response = await fetch(`${BACKEND_URL}auth/user`, {
+          const response = await axios.get(`${BACKEND_URL}auth/user`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          const data = await response.json();
-          if (response.ok) {
-            setUserFullName(data.full_name);
-            setUserEmail(data.email);
-            setUserId(data.id);
-          } else {
-            console.error(data.message);
-          }
+          const data = response.data;
+          setUserFullName(data.full_name);
+          setUserEmail(data.email);
+          setUserId(data.id);
         }
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);
@@ -78,19 +74,21 @@ export function Tickets() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`${BACKEND_URL}tickets`)
+    axios
+      .get(`${BACKEND_URL}tickets`)
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setTickets(data);
+        setTickets(response.data);
         setIsLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching tickets:", error);
+        if (error.response) {
+          console.error("Error data:", error.response.data);
+          console.error("Error status:", error.response.status);
+        } else if (error.request) {
+          console.error("No response received:", error.request);
+        } else {
+          console.error("Error message:", error.message);
+        }
         setIsLoading(false);
       });
   }, []);
