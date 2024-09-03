@@ -35,9 +35,6 @@ const columns = [
   { uid: "actions", name: "Acciones" },
 ];
 
-// Configure axios defaults
-axios.defaults.baseURL = BACKEND_URL;
-
 export function Tickets() {
   const [tickets, setTickets] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState([]);
@@ -57,12 +54,19 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const { data } = await axios.get("auth/user", {
-            headers: { Authorization: `Bearer ${token}` },
+          const response = await fetch(`${BACKEND_URL}auth/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           });
-          setUserFullName(data.full_name);
-          setUserEmail(data.email);
-          setUserId(data.id);
+          const data = await response.json();
+          if (response.ok) {
+            setUserFullName(data.full_name);
+            setUserEmail(data.email);
+            setUserId(data.id);
+          } else {
+            console.error(data.message);
+          }
         }
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);
@@ -73,19 +77,22 @@ export function Tickets() {
   }, []);
 
   useEffect(() => {
-    const fetchTickets = async () => {
-      setIsLoading(true);
-      try {
-        const { data } = await axios.get("tickets");
+    setIsLoading(true);
+    fetch(`${BACKEND_URL}tickets`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
         setTickets(data);
-      } catch (error) {
-        console.error("Error fetching tickets:", error);
-      } finally {
         setIsLoading(false);
-      }
-    };
-
-    fetchTickets();
+      })
+      .catch((error) => {
+        console.error("Error fetching tickets:", error);
+        setIsLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -109,15 +116,17 @@ export function Tickets() {
     setFilteredTickets(filtered);
   }, [tickets, filterValue, userFullName]);
 
-  const deleteTicket = async (id) => {
-    try {
-      await axios.delete(`tickets/${id}`);
-      setTickets((prevTickets) =>
-        prevTickets.filter((ticket) => ticket.id !== id)
-      );
-    } catch (error) {
-      console.error("Error deleting ticket:", error);
-    }
+  const deleteTicket = (id) => {
+    axios
+      .delete(`${BACKEND_URL}tickets/${id}`)
+      .then(() => {
+        setTickets((prevTickets) =>
+          prevTickets.filter((ticket) => ticket.id !== id)
+        );
+      })
+      .catch((error) => {
+        console.error("Error deleting ticket:", error);
+      });
   };
 
   const openModalWithDescription = (id, description) => {
