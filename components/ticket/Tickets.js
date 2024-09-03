@@ -18,7 +18,7 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 
-const BACKEND_URL = "https://backendmintickets-production.up.railway.app/";
+const BACKEND_URL = "https://backend-mintickets.vercel.app/";
 
 const statusColorMap = {
   Creado: "danger",
@@ -54,19 +54,14 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const response = await fetch(`${BACKEND_URL}auth/user`, {
+          const response = await axios.get(`${BACKEND_URL}auth/user`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          const data = await response.json();
-          if (response.ok) {
-            setUserFullName(data.full_name);
-            setUserEmail(data.email);
-            setUserId(data.id);
-          } else {
-            console.error(data.message);
-          }
+          setUserFullName(response.data.full_name);
+          setUserEmail(response.data.email);
+          setUserId(response.data.id);
         }
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);

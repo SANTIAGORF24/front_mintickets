@@ -5,7 +5,7 @@ export function Estadoticket() {
   const [statuses, setStatuses] = useState([]);
 
   useEffect(() => {
-    fetch("https://backendmintickets-production.up.railway.app/status") // Ruta para obtener los estados desde tu aplicación Flask
+    fetch("https://backend-mintickets.vercel.app/status") // Ruta para obtener los estados desde tu aplicación Flask
       .then((response) => response.json())
       .then((data) => {
         setStatuses(data.status);

@@ -14,7 +14,7 @@ const Home = () => {
   const fetchTicket = async () => {
     try {
       const response = await axios.get(
-        `https://backendmintickets-production.up.railway.app/tickets/${ticketId}`
+        `https://backend-mintickets.vercel.app/tickets/${ticketId}`
       );
       setTicketData(response.data);
       setError("");
