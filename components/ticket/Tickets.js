@@ -54,14 +54,19 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const response = await axios.get(`${BACKEND_URL}auth/user`, {
+          const response = await fetch(`${BACKEND_URL}auth/user`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          setUserFullName(response.data.full_name);
-          setUserEmail(response.data.email);
-          setUserId(response.data.id);
+          const data = await response.json();
+          if (response.ok) {
+            setUserFullName(data.full_name);
+            setUserEmail(data.email);
+            setUserId(data.id);
+          } else {
+            console.error(data.message);
+          }
         }
       } catch (error) {
         console.error("Error al obtener los datos del usuario:", error);
