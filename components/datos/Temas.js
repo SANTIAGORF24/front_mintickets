@@ -31,7 +31,7 @@ export function Temas() {
   const fetchTopics = async () => {
     try {
       const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/topics"
+        "https://backend-mintickets.vercel.app/topics"
       );
       if (response.ok) {
         const data = await response.json();
@@ -56,7 +56,7 @@ export function Temas() {
     event.preventDefault();
     try {
       const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/topics",
+        "https://backend-mintickets.vercel.app/topics",
         {
           method: "POST",
           headers: {
@@ -79,7 +79,7 @@ export function Temas() {
   const handleDeleteTopic = async (topicId) => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/topics/${topicId}`,
+        `https://backend-mintickets.vercel.app/topics/${topicId}`,
         {
           method: "DELETE",
         }
@@ -102,7 +102,7 @@ export function Temas() {
   const handleUpdateTopic = async () => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/topics/${editingTopicId}`,
+        `https://backend-mintickets.vercel.app/topics/${editingTopicId}`,
         {
           method: "PUT",
           headers: {
