@@ -30,7 +30,7 @@ export function UserProfileDetails() {
       const token = localStorage.getItem("access_token");
       if (token) {
         const response = await fetch(
-          "https://backendmintickets-production.up.railway.app/auth/user",
+          "https://backend-mintickets.vercel.app/auth/user",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -72,7 +72,7 @@ export function UserProfileDetails() {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/auth/users/${userInfo.id}`, // Usamos el ID del usuario
+        `https://backend-mintickets.vercel.app/auth/users/${userInfo.id}`, // Usamos el ID del usuario
         {
           method: "PUT",
           headers: {

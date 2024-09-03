@@ -30,17 +30,17 @@ export function Nuevoticket() {
     const fetchData = async () => {
       try {
         const topicsResponse = await axios.get(
-          "https://backendmintickets-production.up.railway.app/topics"
+          "https://backend-mintickets.vercel.app/topics"
         );
         setTopics(topicsResponse.data.topics);
 
         const tercerosResponse = await axios.get(
-          "https://backendmintickets-production.up.railway.app/terceros"
+          "https://backend-mintickets.vercel.app/terceros"
         );
         setTerceros(tercerosResponse.data.terceros);
 
         const usersResponse = await axios.get(
-          "https://backendmintickets-production.up.railway.app/auth/users/names"
+          "https://backend-mintickets.vercel.app/auth/users/names"
         );
         setUsers(usersResponse.data.user_names);
       } catch (error) {
@@ -102,7 +102,7 @@ export function Nuevoticket() {
       console.log("Enviando datos del ticket:", ticketData);
 
       const response = await axios.post(
-        "https://backendmintickets-production.up.railway.app/tickets/register",
+        "https://backend-mintickets.vercel.app/tickets/register",
         ticketData
       );
       console.log(response.data);

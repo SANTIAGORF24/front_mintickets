@@ -31,7 +31,7 @@ export function Estados() {
   const fetchStatus = async () => {
     try {
       const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/status"
+        "https://backend-mintickets.vercel.app/status"
       );
       if (response.ok) {
         const data = await response.json();
@@ -56,7 +56,7 @@ export function Estados() {
     event.preventDefault();
     try {
       const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/status",
+        "https://backend-mintickets.vercel.app/status",
         {
           method: "POST",
           headers: {
@@ -79,7 +79,7 @@ export function Estados() {
   const handleDeleteStatu = async (statuId) => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/status/${statuId}`,
+        `https://backend-mintickets.vercel.app/status/${statuId}`,
         {
           method: "DELETE",
         }
@@ -102,7 +102,7 @@ export function Estados() {
   const handleUpdateStatu = async () => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/status/${editingStatuId}`,
+        `https://backend-mintickets.vercel.app/status/${editingStatuId}`,
         {
           method: "PUT",
           headers: {

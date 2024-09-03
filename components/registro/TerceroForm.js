@@ -31,7 +31,7 @@ export function TerceroForm() {
   const fetchTerceros = async () => {
     try {
       const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/terceros"
+        "https://backend-mintickets.vercel.app/terceros"
       );
       if (response.ok) {
         const data = await response.json();
@@ -57,7 +57,7 @@ export function TerceroForm() {
     event.preventDefault();
     try {
       const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/terceros",
+        "https://backend-mintickets.vercel.app/terceros",
         {
           method: "POST",
           headers: {
@@ -80,7 +80,7 @@ export function TerceroForm() {
   const handleDeleteTercero = async (terceroId) => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/terceros/${terceroId}`,
+        `https://backend-mintickets.vercel.app/terceros/${terceroId}`,
         {
           method: "DELETE",
         }
@@ -108,7 +108,7 @@ export function TerceroForm() {
   const handleUpdateTercero = async () => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/terceros/${editingTerceroId}`,
+        `https://backend-mintickets.vercel.app/terceros/${editingTerceroId}`,
         {
           method: "PUT",
           headers: {
