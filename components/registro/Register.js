@@ -22,19 +22,19 @@ export function Register() {
       let response;
       if (username) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/users/username/${username}`
+          `https://backendmintickets-production.up.railway.app/auth/users/username/${username}`
         );
       } else if (email) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/users/email/${email}`
+          `https://backendmintickets-production.up.railway.app/auth/users/email/${email}`
         );
       } else if (firstName) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/users/firstName/${firstName}`
+          `https://backendmintickets-production.up.railway.app/auth/users/firstName/${firstName}`
         );
       } else if (lastName) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/users/lastName/${lastName}`
+          `https://backendmintickets-production.up.railway.app/auth/users/lastName/${lastName}`
         );
       } else {
         toast.error("Por favor, ingrese al menos un criterio de búsqueda");
@@ -62,7 +62,7 @@ export function Register() {
     try {
       if (foundUser) {
         await axios.delete(
-          `https://backendmintickets-production.up.railway.app/users/${foundUser.username}`
+          `https://backendmintickets-production.up.railway.app/auth/users/${foundUser.username}`
         );
         toast.success("Usuario eliminado con éxito");
         setFoundUser(null);
@@ -99,14 +99,14 @@ export function Register() {
 
       if (foundUser) {
         const response = await axios.put(
-          `https://backendmintickets-production.up.railway.app/users/username/${foundUser.username}`,
+          `https://backendmintickets-production.up.railway.app/auth/users/username/${foundUser.username}`,
           userData
         );
         toast.success("¡Usuario actualizado con éxito!");
         console.log(response.data.message);
       } else {
         const response = await axios.post(
-          "https://backendmintickets-production.up.railway.app/register",
+          "https://backendmintickets-production.up.railway.app/auth/register",
           userData
         );
         toast.success("¡Usuario registrado con éxito!");
