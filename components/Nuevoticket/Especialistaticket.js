@@ -5,7 +5,9 @@ export function Especialistaticket() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    fetch("https://backend-mintickets.vercel.app/auth/users/names") // Nueva ruta para obtener solo los nombres de usuario
+    fetch(
+      "https://backendmintickets-production.up.railway.app/auth/users/names"
+    ) // Nueva ruta para obtener solo los nombres de usuario
       .then((response) => response.json())
       .then((data) => {
         setUsers(data.user_names);
