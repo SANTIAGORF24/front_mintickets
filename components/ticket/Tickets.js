@@ -20,23 +20,6 @@ import { TicketCharts } from "./TicketCharts";
 
 const BACKEND_URL = "https://backendmintickets-production.up.railway.app/";
 
-// Configurar interceptores de Axios
-axios.interceptors.request.use((request) => {
-  console.log("Starting Request", request);
-  return request;
-});
-
-axios.interceptors.response.use(
-  (response) => {
-    console.log("Response:", response);
-    return response;
-  },
-  (error) => {
-    console.log("Error:", error);
-    return Promise.reject(error);
-  }
-);
-
 const statusColorMap = {
   Creado: "danger",
   "En proceso": "warning",
@@ -51,6 +34,9 @@ const columns = [
   { uid: "descripcion_caso", name: "Descripción del Caso" },
   { uid: "actions", name: "Acciones" },
 ];
+
+// Configure axios defaults
+axios.defaults.baseURL = BACKEND_URL;
 
 export function Tickets() {
   const [tickets, setTickets] = useState([]);
@@ -71,13 +57,9 @@ export function Tickets() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          const response = await axios.get(`${BACKEND_URL}auth/user`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            timeout: 10000, // 10 segundos de timeout
+          const { data } = await axios.get("auth/user", {
+            headers: { Authorization: `Bearer ${token}` },
           });
-          const data = response.data;
           setUserFullName(data.full_name);
           setUserEmail(data.email);
           setUserId(data.id);
@@ -91,30 +73,19 @@ export function Tickets() {
   }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    axios
-      .get(`${BACKEND_URL}tickets`, { timeout: 10000 }) // 10 segundos de timeout
-      .then((response) => {
-        setTickets(response.data);
-        setIsLoading(false);
-      })
-      .catch((error) => {
+    const fetchTickets = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await axios.get("tickets");
+        setTickets(data);
+      } catch (error) {
         console.error("Error fetching tickets:", error);
-        if (error.response) {
-          // El servidor respondió con un código de estado fuera del rango 2xx
-          console.error("Error data:", error.response.data);
-          console.error("Error status:", error.response.status);
-          console.error("Error headers:", error.response.headers);
-        } else if (error.request) {
-          // La solicitud se hizo pero no se recibió respuesta
-          console.error("No response received:", error.request);
-        } else {
-          // Algo sucedió en la configuración de la solicitud que provocó un error
-          console.error("Error message:", error.message);
-        }
-        console.error("Error config:", error.config);
+      } finally {
         setIsLoading(false);
-      });
+      }
+    };
+
+    fetchTickets();
   }, []);
 
   useEffect(() => {
@@ -138,17 +109,15 @@ export function Tickets() {
     setFilteredTickets(filtered);
   }, [tickets, filterValue, userFullName]);
 
-  const deleteTicket = (id) => {
-    axios
-      .delete(`${BACKEND_URL}tickets/${id}`, { timeout: 10000 })
-      .then(() => {
-        setTickets((prevTickets) =>
-          prevTickets.filter((ticket) => ticket.id !== id)
-        );
-      })
-      .catch((error) => {
-        console.error("Error deleting ticket:", error);
-      });
+  const deleteTicket = async (id) => {
+    try {
+      await axios.delete(`tickets/${id}`);
+      setTickets((prevTickets) =>
+        prevTickets.filter((ticket) => ticket.id !== id)
+      );
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+    }
   };
 
   const openModalWithDescription = (id, description) => {
