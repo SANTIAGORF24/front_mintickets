@@ -30,7 +30,7 @@ export function Navbaruser() {
 
       if (token) {
         const response = await fetch(
-          "https://backend-mintickets.vercel.app/auth/user",
+          "https://backendmintickets-production.up.railway.app/auth/user",
           {
             headers: {
               Authorization: `Bearer ${token}`,

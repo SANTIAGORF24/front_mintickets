@@ -18,7 +18,7 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 
-const BACKEND_URL = "https://backend-mintickets.vercel.app/";
+const BACKEND_URL = "https://backendmintickets-production.up.railway.app/";
 
 const statusColorMap = {
   Creado: "danger",

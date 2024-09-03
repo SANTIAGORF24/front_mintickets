@@ -23,7 +23,9 @@ export default function Home({ searchParams }) {
       setLoading(true);
       setError(null);
       axios
-        .get(`https://backend-mintickets.vercel.app/tickets/${id}`)
+        .get(
+          `https://backendmintickets-production.up.railway.app/tickets/${id}`
+        )
         .then((response) => {
           setTicket(response.data);
           setLoading(false);
@@ -49,12 +51,15 @@ export default function Home({ searchParams }) {
     const { question1, question2, question3, solutionApproval } = ratings;
     if (question1 && question2 && question3 && solutionApproval) {
       axios
-        .post(`https://backend-mintickets.vercel.app/tickets/${id}/rate`, {
-          tiempo_de_respuesta: ratings.question1,
-          actitud: ratings.question2,
-          respuesta: ratings.question3,
-          solutionApproval: ratings.solutionApproval,
-        })
+        .post(
+          `https://backendmintickets-production.up.railway.app/tickets/${id}/rate`,
+          {
+            tiempo_de_respuesta: ratings.question1,
+            actitud: ratings.question2,
+            respuesta: ratings.question3,
+            solutionApproval: ratings.solutionApproval,
+          }
+        )
         .then((response) => {
           toast.success(
             "Sus respuestas han sido enviadas. ¡Gracias por responder!"
