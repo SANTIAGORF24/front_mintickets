@@ -14,7 +14,7 @@ const Home = () => {
   const fetchTicket = async () => {
     try {
       const response = await axios.get(
-        `https://backendmintickets-production.up.railway.app/tickets/${ticketId}`
+        `http://127.0.0.1:5000/tickets/${ticketId}`
       );
       setTicketData(response.data);
       setError("");

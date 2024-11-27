@@ -22,19 +22,19 @@ export function Register() {
       let response;
       if (username) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/auth/users/username/${username}`
+          `http://127.0.0.1:5000/auth/users/username/${username}`
         );
       } else if (email) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/auth/users/email/${email}`
+          `http://127.0.0.1:5000/auth/users/email/${email}`
         );
       } else if (firstName) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/auth/users/firstName/${firstName}`
+          `http://127.0.0.1:5000/auth/users/firstName/${firstName}`
         );
       } else if (lastName) {
         response = await axios.get(
-          `https://backendmintickets-production.up.railway.app/auth/users/lastName/${lastName}`
+          `http://127.0.0.1:5000/auth/users/lastName/${lastName}`
         );
       } else {
         toast.error("Por favor, ingrese al menos un criterio de búsqueda");
@@ -62,7 +62,7 @@ export function Register() {
     try {
       if (foundUser) {
         await axios.delete(
-          `https://backendmintickets-production.up.railway.app/auth/users/${foundUser.username}`
+          `http://127.0.0.1:5000/auth/users/${foundUser.username}`
         );
         toast.success("Usuario eliminado con éxito");
         setFoundUser(null);
@@ -99,14 +99,14 @@ export function Register() {
 
       if (foundUser) {
         const response = await axios.put(
-          `https://backendmintickets-production.up.railway.app/auth/users/username/${foundUser.username}`,
+          `http://127.0.0.1:5000/auth/users/username/${foundUser.username}`,
           userData
         );
         toast.success("¡Usuario actualizado con éxito!");
         console.log(response.data.message);
       } else {
         const response = await axios.post(
-          "https://backendmintickets-production.up.railway.app/auth/register",
+          "http://127.0.0.1:5000/auth/register",
           userData
         );
         toast.success("¡Usuario registrado con éxito!");

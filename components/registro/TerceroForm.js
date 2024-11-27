@@ -30,9 +30,7 @@ export function TerceroForm() {
 
   const fetchTerceros = async () => {
     try {
-      const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/terceros"
-      );
+      const response = await fetch("http://127.0.0.1:5000/terceros");
       if (response.ok) {
         const data = await response.json();
         setTerceros(data.terceros);
@@ -56,16 +54,13 @@ export function TerceroForm() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch(
-        "https://backendmintickets-production.up.railway.app/terceros",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newTercero),
-        }
-      );
+      const response = await fetch("http://127.0.0.1:5000/terceros", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTercero),
+      });
       if (response.ok) {
         setNewTercero({ name: "", email: "" });
         fetchTerceros();
@@ -80,7 +75,7 @@ export function TerceroForm() {
   const handleDeleteTercero = async (terceroId) => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/terceros/${terceroId}`,
+        `http://127.0.0.1:5000/terceros/${terceroId}`,
         {
           method: "DELETE",
         }
@@ -108,7 +103,7 @@ export function TerceroForm() {
   const handleUpdateTercero = async () => {
     try {
       const response = await fetch(
-        `https://backendmintickets-production.up.railway.app/terceros/${editingTerceroId}`,
+        `http://127.0.0.1:5000/terceros/${editingTerceroId}`,
         {
           method: "PUT",
           headers: {

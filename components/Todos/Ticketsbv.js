@@ -43,7 +43,7 @@ export function Ticketsbv() {
 
   useEffect(() => {
     axios
-      .get("https://backendmintickets-production.up.railway.app/tickets")
+      .get("http://127.0.0.1:5000/tickets")
       .then((response) => {
         setTickets(response.data);
       })
@@ -54,9 +54,7 @@ export function Ticketsbv() {
 
   const deleteTicket = (id) => {
     axios
-      .delete(
-        `https://backendmintickets-production.up.railway.app/tickets/${id}`
-      )
+      .delete(`http://127.0.0.1:5000/tickets/${id}`)
       .then((response) => {
         // Recargar la página después de eliminar el ticket
         window.location.reload();

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, CircularProgress } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
+import TercerosUsuarios from "./TercerosUsuarios";
+
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -29,18 +31,16 @@ export function Nuevoticket() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const topicsResponse = await axios.get(
-          "https://backendmintickets-production.up.railway.app/topics"
-        );
+        const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
         setTopics(topicsResponse.data.topics);
 
         const tercerosResponse = await axios.get(
-          "https://backendmintickets-production.up.railway.app/terceros"
+          "http://127.0.0.1:5000/terceros"
         );
         setTerceros(tercerosResponse.data.terceros);
 
         const usersResponse = await axios.get(
-          "https://backendmintickets-production.up.railway.app/auth/users/names"
+          "http://127.0.0.1:5000/auth/users/names"
         );
         setUsers(usersResponse.data.user_names);
       } catch (error) {
@@ -102,7 +102,7 @@ export function Nuevoticket() {
       console.log("Enviando datos del ticket:", ticketData);
 
       const response = await axios.post(
-        "https://backendmintickets-production.up.railway.app/tickets/register",
+        "http://127.0.0.1:5000/tickets/register",
         ticketData
       );
       console.log(response.data);
@@ -245,6 +245,7 @@ export function Nuevoticket() {
                   </label>
                 </div>
               </div>
+              <TercerosUsuarios />
             </div>
           </div>
           <div className="flex items-center justify-center mt-4">

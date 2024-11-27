@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Navbar,
@@ -16,49 +16,51 @@ import Image from "next/image";
 
 export function Navbaruser() {
   const router = useRouter();
-  const [userFullName, setUserFullName] = useState(""); // Estado para almacenar el nombre completo del usuario
-  const [userEmail, setUserEmail] = useState(""); // Estado para almacenar el correo del usuario
-  const [userId, setUserId] = useState(""); // Estado para almacenar el ID del usuario
+  const [userFullName, setUserFullName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userId, setUserId] = useState("");
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
+  // Wrap fetchUserData in useCallback to memoize it
+  const fetchUserData = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token"); // Obtener el token de acceso del almacenamiento local
+      const token = localStorage.getItem("access_token");
 
       if (token) {
-        const response = await fetch(
-          "https://backendmintickets-production.up.railway.app/auth/user",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
+        const response = await fetch("http://127.0.0.1:5000/auth/user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (response.ok) {
-          setUserFullName(data.full_name); // Almacenar el nombre completo del usuario
-          setUserEmail(data.email); // Almacenar el correo del usuario
-          setUserId(data.id); // Almacenar el ID del usuario
-          console.log("Nombre completo del usuario:", data.full_name);
-          console.log("Correo del usuario:", data.email);
-          console.log("ID del usuario:", data.id); // Mostrar el ID del usuario en la consola
+          const data = await response.json();
+          setUserFullName(data.full_name);
+          setUserEmail(data.email);
+          setUserId(data.id);
         } else {
-          console.error(data.message);
+          const errorData = await response.json();
+          console.error("Error response:", errorData);
+          if (response.status === 422) {
+            localStorage.removeItem("access_token");
+            router.push("/");
+          }
         }
+      } else {
+        router.push("/");
       }
     } catch (error) {
       console.error("Error al obtener los datos del usuario:", error);
     }
-  };
+  }, [router]); // Include router in dependencies since it's used inside fetchUserData
 
-  // Función para cerrar sesión y redirigir a la página principal
+  // Now include fetchUserData in the useEffect dependencies
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
   const handleLogout = () => {
-    localStorage.removeItem("access_token"); // Eliminar el token de acceso del almacenamiento local al cerrar sesión
+    localStorage.removeItem("access_token");
     router.push("/");
   };
 
@@ -71,7 +73,7 @@ export function Navbaruser() {
             className="w-50"
             width={60}
             height={60}
-            style={{ width: "auto", height: "auto" }} // Agrega estos estilos
+            style={{ width: "auto", height: "auto" }}
             alt="logo"
           />
         </div>
@@ -115,10 +117,9 @@ export function Navbaruser() {
           >
             <DropdownItem key="profile" className="h-14 gap-2">
               <p className="font-semibold">Registrado como</p>
-              <p className="font-semibold">{userFullName}</p>{" "}
-              <p className="text-gray-500">{userEmail}</p>{" "}
+              <p className="font-semibold">{userFullName}</p>
+              <p className="text-gray-500">{userEmail}</p>
             </DropdownItem>
-            S
             <DropdownItem key="settings" href="/perfil">
               Mi configuracion
             </DropdownItem>

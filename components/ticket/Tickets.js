@@ -18,7 +18,7 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 
-const BACKEND_URL = "https://backendmintickets-production.up.railway.app/";
+const BACKEND_URL = "http://127.0.0.1:5000/";
 
 const statusColorMap = {
   Creado: "danger",

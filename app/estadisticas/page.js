@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     axios
-      .get("https://backendmintickets-production.up.railway.app/tickets")
+      .get("http://127.0.0.1:5000/tickets")
       .then((response) => {
         setTicketsData(response.data);
         setLoading(false);
