@@ -1,30 +1,46 @@
 import React, { useState, useEffect } from "react";
-import { User, Mail, Building2, ArrowDown } from "lucide-react";
+import { User, Mail, Building2, Search } from "lucide-react";
 
 const TercerosUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
+  // Debounce para evitar múltiples llamadas al servidor
   useEffect(() => {
-    const obtenerUsuarios = async () => {
-      try {
-        const respuesta = await fetch("http://127.0.0.1:5000/tercerosda");
-
-        if (!respuesta.ok) {
-          throw new Error("Error al obtener usuarios");
-        }
-
-        const data = await respuesta.json();
-        setUsuarios(data);
-      } catch (error) {
-        console.error("Error:", error);
-        setError("No se pudieron cargar los usuarios");
+    const delayDebounceFn = setTimeout(() => {
+      if (busqueda) {
+        buscarUsuarios(busqueda);
+      } else {
+        setUsuarios([]);
       }
-    };
+    }, 500); // Espera 500ms después de que el usuario deja de escribir
 
-    obtenerUsuarios();
-  }, []);
+    return () => clearTimeout(delayDebounceFn);
+  }, [busqueda]);
+
+  const buscarUsuarios = async (termino) => {
+    setCargando(true);
+    try {
+      const respuesta = await fetch(
+        `http://127.0.0.1:5000/tercerosda?search=${termino}`
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("Error al buscar usuarios");
+      }
+
+      const data = await respuesta.json();
+      setUsuarios(data);
+    } catch (error) {
+      console.error("Error:", error);
+      setError("No se pudieron cargar los usuarios");
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const handleSeleccionUsuario = async (username) => {
     try {
@@ -61,7 +77,26 @@ const TercerosUsuarios = () => {
         </div>
 
         <div className="p-4">
-          <div className="relative">
+          {/* Campo de búsqueda */}
+          <div className="mb-4 relative">
+            <input
+              type="text"
+              className="w-full p-3 pl-10 pr-6 border rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Buscar usuario por nombre"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+
+          {/* Lista de usuarios */}
+          {cargando ? (
+            <div className="text-center text-gray-600">
+              Cargando usuarios...
+            </div>
+          ) : (
             <select
               className="w-full p-3 pl-10 pr-6 border rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={(e) => handleSeleccionUsuario(e.target.value)}
@@ -73,14 +108,9 @@ const TercerosUsuarios = () => {
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <User className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <ArrowDown className="h-5 w-5 text-gray-400" />
-            </div>
-          </div>
+          )}
 
+          {/* Detalles del usuario seleccionado */}
           {usuarioSeleccionado && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">

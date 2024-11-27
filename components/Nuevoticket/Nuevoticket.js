@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, CircularProgress } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
-import TercerosUsuarios from "./TercerosUsuarios";
-
+import { User, Mail, Building2, ArrowDown } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -11,22 +10,22 @@ export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
   const [solucionValue, setSolucionValue] = useState("");
   const [topics, setTopics] = useState([]);
-  const [terceros, setTerceros] = useState([]);
   const [users, setUsers] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
 
   const [selectedTopic, setSelectedTopic] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState({
+  const [selectedStatus] = useState({
     id: 1,
     name: "Creado",
   });
-  const [selectedTercero, setSelectedTercero] = useState(null);
-  const [selectedTerceroEmail, setSelectedTerceroEmail] = useState(null);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const [descripcionImages, setDescripcionImages] = useState([]);
   const [solucionImages, setSolucionImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,15 +33,21 @@ export function Nuevoticket() {
         const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
         setTopics(topicsResponse.data.topics);
 
-        const tercerosResponse = await axios.get(
-          "http://127.0.0.1:5000/terceros"
-        );
-        setTerceros(tercerosResponse.data.terceros);
-
         const usersResponse = await axios.get(
           "http://127.0.0.1:5000/auth/users/names"
         );
         setUsers(usersResponse.data.user_names);
+
+        const usuariosResponse = await fetch(
+          "http://127.0.0.1:5000/tercerosda"
+        );
+
+        if (!usuariosResponse.ok) {
+          throw new Error("Error al obtener usuarios");
+        }
+
+        const data = await usuariosResponse.json();
+        setUsuarios(data);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Error al cargar los datos. Por favor, recarga la página.");
@@ -76,10 +81,28 @@ export function Nuevoticket() {
     event.preventDefault();
   };
 
+  const handleSeleccionTercero = async (username) => {
+    try {
+      const respuesta = await fetch(
+        `http://127.0.0.1:5000/tercerosda/${username}`
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("Error al obtener detalles del usuario");
+      }
+
+      const data = await respuesta.json();
+      setUsuarioSeleccionado(data);
+    } catch (error) {
+      console.error("Error:", error);
+      setError("No se pudieron cargar los detalles del usuario");
+    }
+  };
+
   const handleSubmit = async () => {
     try {
-      if (!selectedTopic || !selectedTercero || !selectedUser) {
-        toast.error("Por favor, selecciona valores en todos los campos.");
+      if (!selectedTopic || !usuarioSeleccionado || !selectedUser) {
+        toast.error("Por favor, selecciona todos los campos necesarios.");
         return;
       }
 
@@ -89,8 +112,8 @@ export function Nuevoticket() {
         fecha_creacion: new Date().toISOString(),
         tema: selectedTopic.name,
         estado: selectedStatus.name,
-        tercero_nombre: selectedTercero.name,
-        tercero_email: selectedTerceroEmail,
+        tercero_nombre: usuarioSeleccionado.fullName,
+        tercero_email: usuarioSeleccionado.email,
         especialista_nombre: selectedUser.name,
         especialista_email: selectedUserEmail,
         descripcion_caso: descripcionValue,
@@ -99,13 +122,10 @@ export function Nuevoticket() {
         solucion_images: solucionImages,
       };
 
-      console.log("Enviando datos del ticket:", ticketData);
-
       const response = await axios.post(
         "http://127.0.0.1:5000/tickets/register",
         ticketData
       );
-      console.log(response.data);
 
       if (response.status === 201) {
         toast.success("Ticket creado exitosamente");
@@ -120,6 +140,12 @@ export function Nuevoticket() {
       setIsLoading(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-100 text-red-800 rounded-lg">{error}</div>
+    );
+  }
 
   return (
     <>
@@ -158,20 +184,41 @@ export function Nuevoticket() {
                 <label className="block text-[#4a53a0] font-semibold mb-2">
                   Tercero
                 </label>
-                <Autocomplete
-                  items={terceros}
-                  placeholder="Seleccionar tercero"
-                  onSelect={(value) => {
-                    setSelectedTercero(value);
-                    setSelectedTerceroEmail(value.email);
-                  }}
-                />
+                <select
+                  className="text-black w-full p-3 pl-10 pr-6 border rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => handleSeleccionTercero(e.target.value)}
+                >
+                  <option value="">Selecciona un usuario</option>
+                  {usuarios.map((usuario) => (
+                    <option key={usuario.username} value={usuario.username}>
+                      {usuario.fullName}
+                    </option>
+                  ))}
+                </select>
               </div>
-              {selectedTerceroEmail && (
-                <h3 className="text-[#4a53a0] text-lg mt-2">
-                  Correo: {selectedTerceroEmail}
-                </h3>
+
+              {usuarioSeleccionado && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Detalles del Tercero
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <Mail className="mr-3 text-blue-600" />
+                      <span className="text-gray-700">
+                        {usuarioSeleccionado.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <User className="mr-3 text-green-600" />
+                      <span className="text-gray-700">
+                        {usuarioSeleccionado.fullName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               )}
+
               <div>
                 <label className="block text-[#4a53a0] font-semibold mb-2">
                   Especialista
@@ -245,7 +292,6 @@ export function Nuevoticket() {
                   </label>
                 </div>
               </div>
-              <TercerosUsuarios />
             </div>
           </div>
           <div className="flex items-center justify-center mt-4">
@@ -270,3 +316,5 @@ export function Nuevoticket() {
     </>
   );
 }
+
+export default Nuevoticket;

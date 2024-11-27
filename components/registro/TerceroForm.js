@@ -21,19 +21,27 @@ import { DeleteIcon, EditIcon, EyeIcon } from "../ticket/Iconsactions";
 
 export function TerceroForm() {
   const [filterValue, setFilterValue] = useState("");
-  const [newTercero, setNewTercero] = useState({ name: "", email: "" });
+  const [newTercero, setNewTercero] = useState({
+    username: "",
+    fullName: "",
+    email: "",
+  });
   const [terceros, setTerceros] = useState([]);
   const [editingTerceroId, setEditingTerceroId] = useState(null);
-  const [updatedTercero, setUpdatedTercero] = useState({ name: "", email: "" });
+  const [updatedTercero, setUpdatedTercero] = useState({
+    username: "",
+    fullName: "",
+    email: "",
+  });
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const fetchTerceros = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/terceros");
+      const response = await fetch("http://127.0.0.1:5000/tercerosda");
       if (response.ok) {
         const data = await response.json();
-        setTerceros(data.terceros);
+        setTerceros(data);
       } else {
         console.error("Failed to fetch terceros");
       }
@@ -54,7 +62,7 @@ export function TerceroForm() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:5000/terceros", {
+      const response = await fetch("http://127.0.0.1:5000/tercerosda", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +70,7 @@ export function TerceroForm() {
         body: JSON.stringify(newTercero),
       });
       if (response.ok) {
-        setNewTercero({ name: "", email: "" });
+        setNewTercero({ username: "", fullName: "", email: "" });
         fetchTerceros();
       } else {
         console.error("Failed to add new tercero");
@@ -72,10 +80,10 @@ export function TerceroForm() {
     }
   };
 
-  const handleDeleteTercero = async (terceroId) => {
+  const handleDeleteTercero = async (username) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/terceros/${terceroId}`,
+        `http://127.0.0.1:5000/tercerosda/${username}`,
         {
           method: "DELETE",
         }
@@ -90,9 +98,13 @@ export function TerceroForm() {
     }
   };
 
-  const handleEditTercero = (terceroId, tercero) => {
-    setEditingTerceroId(terceroId);
-    setUpdatedTercero(tercero);
+  const handleEditTercero = (tercero) => {
+    setEditingTerceroId(tercero.username);
+    setUpdatedTercero({
+      username: tercero.username,
+      fullName: tercero.fullName,
+      email: tercero.email,
+    });
   };
 
   const handleInputChangeEdit = (event) => {
@@ -103,7 +115,7 @@ export function TerceroForm() {
   const handleUpdateTercero = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/terceros/${editingTerceroId}`,
+        `http://127.0.0.1:5000/tercerosda/${updatedTercero.username}`,
         {
           method: "PUT",
           headers: {
@@ -128,11 +140,13 @@ export function TerceroForm() {
     setPage(1);
   };
 
-  const filteredTerceros = terceros.filter(
-    (tercero) =>
-      tercero.name.toLowerCase().includes(filterValue.toLowerCase()) ||
-      tercero.email.toLowerCase().includes(filterValue.toLowerCase())
-  );
+  const filteredTerceros = terceros.filter((tercero) => {
+    const fullName = tercero.fullName ? tercero.fullName.toLowerCase() : "";
+    const email = tercero.email ? tercero.email.toLowerCase() : "";
+    const filterText = filterValue.toLowerCase();
+
+    return fullName.includes(filterText) || email.includes(filterText);
+  });
 
   const pages = Math.ceil(filteredTerceros.length / rowsPerPage);
   const paginatedTerceros = filteredTerceros.slice(
@@ -172,8 +186,8 @@ export function TerceroForm() {
                 type="text"
                 variant="bordered"
                 placeholder="Enter new tercero name..."
-                name="name"
-                value={newTercero.name}
+                name="fullName"
+                value={newTercero.fullName}
                 onChange={handleInputChange}
               />
               <Input
@@ -213,22 +227,22 @@ export function TerceroForm() {
         </TableHeader>
         <TableBody>
           {paginatedTerceros.map((tercero) => (
-            <TableRow key={tercero.id}>
-              <TableCell className="text-black">{tercero.id}</TableCell>
+            <TableRow key={tercero.username}>
+              <TableCell className="text-black">{tercero.username}</TableCell>
               <TableCell className="text-black">
-                {editingTerceroId === tercero.id ? (
+                {editingTerceroId === tercero.username ? (
                   <Input
                     type="text"
-                    name="name"
-                    value={updatedTercero.name}
+                    name="fullName"
+                    value={updatedTercero.fullName}
                     onChange={handleInputChangeEdit}
                   />
                 ) : (
-                  tercero.name
+                  tercero.fullName
                 )}
               </TableCell>
               <TableCell className="text-black">
-                {editingTerceroId === tercero.id ? (
+                {editingTerceroId === tercero.username ? (
                   <Input
                     type="email"
                     name="email"
@@ -240,19 +254,19 @@ export function TerceroForm() {
                 )}
               </TableCell>
               <TableCell>
-                {editingTerceroId === tercero.id ? (
+                {editingTerceroId === tercero.username ? (
                   <Button onClick={handleUpdateTercero}>Actualizar</Button>
                 ) : (
                   <div className="relative flex items-center gap-2">
                     <span
                       className="text-lg cursor-pointer active:opacity-50 text-sky-800"
-                      onClick={() => handleEditTercero(tercero.id, tercero)}
+                      onClick={() => handleEditTercero(tercero)}
                     >
                       <EditIcon />
                     </span>
                     <span
                       className="text-lg text-danger cursor-pointer active:opacity-50"
-                      onClick={() => handleDeleteTercero(tercero.id)}
+                      onClick={() => handleDeleteTercero(tercero.username)}
                     >
                       <DeleteIcon />
                     </span>
@@ -273,10 +287,9 @@ export function TerceroForm() {
             setPage(1);
           }}
         >
-          <option value={5}>5</option>
           <option value={10}>10</option>
-          <option value={15}>15</option>
-          <option value={10000}>Todos</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
         </select>
       </div>
     </div>
