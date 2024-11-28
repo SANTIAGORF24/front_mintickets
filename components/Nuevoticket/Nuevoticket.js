@@ -1,10 +1,88 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, CircularProgress } from "@nextui-org/react";
-import Autocomplete from "./Autocomplete";
-import { User, Mail, Building2, ArrowDown } from "lucide-react";
+import { User, Mail, Search } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Custom Autocomplete Component for Terceros
+const TerceroAutocomplete = ({ usuarios, onSelect }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = usuarios
+        .filter(
+          (usuario) =>
+            usuario.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            usuario.username.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .slice(0, 5);
+      setFilteredUsers(filtered);
+      setIsOpen(filtered.length > 0);
+    } else {
+      setFilteredUsers([]);
+      setIsOpen(false);
+    }
+  }, [searchTerm, usuarios]);
+
+  const handleSelect = (usuario) => {
+    onSelect(usuario);
+    setSearchTerm(usuario.fullName);
+
+    // Use setTimeout to ensure the dropdown closes immediately
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 0);
+  };
+
+  return (
+    <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={20}
+        />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar tercero"
+          className="w-full p-3 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+          onFocus={() => setIsOpen(filteredUsers.length > 0)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(filteredUsers.length > 0);
+          }}
+        />
+      </div>
+      {isOpen && (
+        <ul
+          className="absolute z-10 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {filteredUsers.map((usuario) => (
+            <li
+              key={usuario.username}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                handleSelect(usuario);
+              }}
+              className="p-3 hover:bg-gray-100 cursor-pointer flex items-center"
+            >
+              <div>
+                <p className="font-semibold">{usuario.fullName}</p>
+                <p className="text-sm text-gray-500">{usuario.username}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
 
 export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
@@ -81,22 +159,8 @@ export function Nuevoticket() {
     event.preventDefault();
   };
 
-  const handleSeleccionTercero = async (username) => {
-    try {
-      const respuesta = await fetch(
-        `http://127.0.0.1:5000/tercerosda/${username}`
-      );
-
-      if (!respuesta.ok) {
-        throw new Error("Error al obtener detalles del usuario");
-      }
-
-      const data = await respuesta.json();
-      setUsuarioSeleccionado(data);
-    } catch (error) {
-      console.error("Error:", error);
-      setError("No se pudieron cargar los detalles del usuario");
-    }
+  const handleSeleccionTercero = (usuario) => {
+    setUsuarioSeleccionado(usuario);
   };
 
   const handleSubmit = async () => {
@@ -148,132 +212,142 @@ export function Nuevoticket() {
   }
 
   return (
-    <>
+    <div className="bg-gray-50  flex items-center justify-center p-6">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="flex items-center justify-center w-full py-10">
-        <div className="w-4/6">
-          <div className="w-full flex items-center justify-center">
-            <h2 className="text-[#4a53a0] text-3xl font-bold text-center mb-4">
-              Nuevo ticket
-            </h2>
-          </div>
-          <div className="flex space-x-10 items-center justify-center h-full py-10">
-            <div className="flex flex-col space-y-7 w-2/6">
-              <div>
-                <label className="block text-[#4a53a0] font-semibold mb-2">
-                  Tema del ticket
-                </label>
-                <Autocomplete
-                  items={topics}
-                  placeholder="Seleccionar tema"
-                  onSelect={(value) => setSelectedTopic(value)}
-                />
-              </div>
-              <div className="flex flex-col w-4/5">
-                <label className="mb-2 text-[#4a53a0] font-semibold">
-                  Estado del ticket
-                </label>
-                <input
-                  type="text"
-                  value="Creado"
-                  readOnly
-                  className="p-2 border border-gray-300 rounded text-black bg-slate-100"
-                />
-              </div>
-              <div>
-                <label className="block text-[#4a53a0] font-semibold mb-2">
-                  Tercero
-                </label>
-                <select
-                  className="text-black w-full p-3 pl-10 pr-6 border rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => handleSeleccionTercero(e.target.value)}
-                >
-                  <option value="">Selecciona un usuario</option>
-                  {usuarios.map((usuario) => (
-                    <option key={usuario.username} value={usuario.username}>
-                      {usuario.fullName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      <div className="bg-white shadow-2xl rounded-2xl w-5/6 p-8 ">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-extrabold text-[#4a53a0]">
+            Crear Nuevo Ticket
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Complete todos los campos para registrar su ticket
+          </p>
+        </div>
 
-              {usuarioSeleccionado && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    Detalles del Tercero
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <Mail className="mr-3 text-blue-600" />
-                      <span className="text-gray-700">
-                        {usuarioSeleccionado.email}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <User className="mr-3 text-green-600" />
-                      <span className="text-gray-700">
-                        {usuarioSeleccionado.fullName}
-                      </span>
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Columna Izquierda: Información Principal */}
+          <div className="space-y-6">
+            {/* Tema del Ticket */}
+            <div>
+              <label className="block text-[#4a53a0] font-semibold mb-2">
+                Tema del Ticket
+              </label>
+              <select
+                value={selectedTopic?.name || ""}
+                onChange={(e) => {
+                  const selected = topics.find(
+                    (t) => t.name === e.target.value
+                  );
+                  setSelectedTopic(selected);
+                }}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              >
+                <option value="">Seleccionar Tema</option>
+                {topics.map((topic) => (
+                  <option key={topic.name} value={topic.name}>
+                    {topic.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Estado del Ticket */}
+            <div>
+              <label className="block text-[#4a53a0] font-semibold mb-2">
+                Estado del Ticket
+              </label>
+              <input
+                type="text"
+                value="Creado"
+                readOnly
+                className="w-full p-3 border rounded-lg bg-gray-100 text-gray-700"
+              />
+            </div>
+
+            {/* Tercero */}
+            <div className="text-black">
+              <label className="block text-[#4a53a0] font-semibold mb-2">
+                Tercero
+              </label>
+              <TerceroAutocomplete
+                usuarios={usuarios}
+                onSelect={handleSeleccionTercero}
+              />
+            </div>
+
+            {/* Detalles del Tercero */}
+            {usuarioSeleccionado && (
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg text-black">
+                <h3 className="text-lg font-bold text-blue-800 mb-3">
+                  Detalles del Tercero
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Mail className="mr-3 text-blue-600" />
+                    <span className="text-gray-700">
+                      {usuarioSeleccionado.email}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <User className="mr-3 text-green-600" />
+                    <span className="text-gray-700">
+                      {usuarioSeleccionado.fullName}
+                    </span>
                   </div>
                 </div>
-              )}
-
-              <div>
-                <label className="block text-[#4a53a0] font-semibold mb-2">
-                  Especialista
-                </label>
-                <Autocomplete
-                  items={users}
-                  placeholder="Selecciona un Especialista"
-                  onSelect={(value) => {
-                    setSelectedUser(value);
-                    setSelectedUserEmail(value.email);
-                  }}
-                />
               </div>
+            )}
+
+            {/* Especialista */}
+            <div>
+              <label className="block text-[#4a53a0] font-semibold mb-2">
+                Especialista
+              </label>
+              <select
+                value={selectedUser?.name || ""}
+                onChange={(e) => {
+                  const selected = users.find((u) => u.name === e.target.value);
+                  setSelectedUser(selected);
+                  setSelectedUserEmail(selected?.email);
+                }}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              >
+                <option value="">Seleccionar Especialista</option>
+                {users.map((user) => (
+                  <option key={user.name} value={user.name}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
               {selectedUserEmail && (
-                <h3 className="text-[#4a53a0] text-lg mt-2">
+                <p className="text-sm text-gray-500 mt-2">
                   Correo: {selectedUserEmail}
-                </h3>
+                </p>
               )}
             </div>
-            <div className="w-4/6">
-              <div>
-                <p className="text-[#4a53a0] font-bold text-xl mb-2">
-                  Descripción del caso:
-                </p>
-                <div
-                  onDrop={(e) => handleDrop(e, setDescripcionImages)}
-                  onDragOver={handleDragOver}
-                  className="border border-gray-300 rounded p-2"
-                >
-                  <textarea
-                    className="w-full h-[150px] p-2 text-black bg-slate-100 border-none outline-none"
-                    value={descripcionValue}
-                    onChange={(e) => setDescripcionValue(e.target.value)}
-                    placeholder="Descripción del caso"
-                  />
-                  <div className="mt-2 flex flex-wrap gap-2 ">
-                    {descripcionImages.map((img, index) => (
-                      <img
-                        key={index}
-                        src={img}
-                        alt={`Uploaded ${index}`}
-                        className="w-20 h-20 object-cover"
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div
-                  onDrop={(e) => handleDrop(e, setDescripcionImages)}
-                  onDragOver={handleDragOver}
-                  className="border border-dashed border-gray-300 rounded p-4 mt-2 text-center text-gray-500"
-                >
-                  <p>
-                    Arrastra y suelta las imágenes aquí o selecciona las
-                    imágenes
-                  </p>
+          </div>
+
+          {/* Columna Derecha: Descripción y Solución */}
+          <div className="md:col-span-2 space-y-6 text-black">
+            {/* Descripción del Caso */}
+            <div>
+              <label className="block text-[#4a53a0] font-semibold mb-2">
+                Descripción del Caso
+              </label>
+              <div
+                onDrop={(e) => handleDrop(e, setDescripcionImages)}
+                onDragOver={handleDragOver}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+              >
+                <textarea
+                  className="w-full h-48 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  value={descripcionValue}
+                  onChange={(e) => setDescripcionValue(e.target.value)}
+                  placeholder="Describe el caso detalladamente..."
+                />
+
+                {/* Image Upload Section */}
+                <div className="mt-4">
                   <input
                     type="file"
                     multiple
@@ -286,34 +360,50 @@ export function Nuevoticket() {
                   />
                   <label
                     htmlFor="descripcionImageInput"
-                    className="cursor-pointer text-blue-500 underline"
+                    className="block text-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition"
                   >
-                    Seleccionar imágenes
+                    + Añadir imágenes
                   </label>
+
+                  {/* Uploaded Images Preview */}
+                  {descripcionImages.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {descripcionImages.map((img, index) => (
+                        <img
+                          key={index}
+                          src={img}
+                          alt={`Uploaded ${index}`}
+                          className="w-24 h-24 object-cover rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center justify-center mt-4">
-            <Button
-              onClick={handleSubmit}
-              className="self-center bg-[#4a53a0] text-white w-full h-12 text-xl rounded-2xl hover:shadow-lg hover:bg-[#666eb5]"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <CircularProgress
-                  size="sm"
-                  color="current"
-                  aria-label="Loading..."
-                />
-              ) : (
-                "Crear Ticket"
-              )}
-            </Button>
+
+            {/* Botón de Crear Ticket */}
+            <div className="mt-6">
+              <Button
+                onClick={handleSubmit}
+                className="w-full bg-[#4a53a0] text-white py-4 text-lg rounded-xl hover:bg-[#666eb5] transition duration-300 ease-in-out"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <CircularProgress
+                    size="sm"
+                    color="current"
+                    aria-label="Creando ticket..."
+                  />
+                ) : (
+                  "Crear Ticket"
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

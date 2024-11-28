@@ -16,14 +16,6 @@ export function Login() {
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  // Verifica si el token ha expirado
-  const isTokenExpired = () => {
-    const expirationTime = localStorage.getItem("token_expiration");
-    if (!expirationTime) return true; // Si no existe la expiración, considera el token expirado
-    return new Date().getTime() > expirationTime; // Si la fecha actual es mayor que la expiración
-  };
-
-  // Maneja el inicio de sesión y guarda el token con la expiración
   const handleLogin = async () => {
     setIsLoading(true);
     try {
@@ -39,12 +31,7 @@ export function Login() {
 
       if (response.ok) {
         console.log(data.message);
-
-        // Establecer el tiempo de expiración del token (1 hora)
-        const expirationTime = new Date().getTime() + 3600 * 1000; // 1 hora
         localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("token_expiration", expirationTime); // Guarda la expiración
-
         console.log("Token de acceso almacenado:", data.access_token);
         router.push("/ticket");
       } else {
@@ -62,32 +49,15 @@ export function Login() {
     }
   };
 
-  // Maneja la tecla Enter para iniciar sesión
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       handleLogin();
     }
   };
 
-  // Maneja el logout
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_expiration");
-    router.push("/login");
-  };
-
-  // Obtiene el token solo si no ha expirado
-  const getAccessToken = () => {
-    if (isTokenExpired()) {
-      handleLogout();
-      return null; // El token ha expirado
-    }
-    return localStorage.getItem("access_token"); // Devuelve el token si no ha expirado
-  };
-
   return (
     <>
-      <div className="w-full h-svh flex items-center justify-center">
+      <div className="w-full h-svh flex items-center justify-center ">
         <div className="w-5/6 h-[80%] sm:h-[90%] rounded-lg border-2">
           <div className="flex items-center justify-center h-[90%]">
             <div className="w-5/6 h-full flex items-center justify-center">
@@ -103,7 +73,7 @@ export function Login() {
                     deporte
                   </h1>
                 </div>
-                <div>
+                <div className="">
                   <Input
                     type="text"
                     value={username}
@@ -114,7 +84,7 @@ export function Login() {
                     className="max-w-xs text-black"
                   />
                 </div>
-                <div>
+                <div className="">
                   <Input
                     label="Contraseña"
                     variant="bordered"
