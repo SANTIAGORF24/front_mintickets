@@ -84,6 +84,106 @@ const TerceroAutocomplete = ({ usuarios, onSelect }) => {
   );
 };
 
+// Custom Autocomplete Component for Specialists
+const SpecialistAutocomplete = ({ onSelect }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [specialists, setSpecialists] = useState([]);
+  const [filteredSpecialists, setFilteredSpecialists] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchSpecialists = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:5000/tercerosda/especialistas"
+        );
+        setSpecialists(response.data);
+      } catch (error) {
+        console.error("Error fetching specialists:", error);
+        toast.error("Error al cargar especialistas");
+      }
+    };
+
+    fetchSpecialists();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = specialists
+        .filter(
+          (specialist) =>
+            specialist.fullName
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            specialist.username.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .slice(0, 5);
+      setFilteredSpecialists(filtered);
+      setIsOpen(filtered.length > 0);
+    } else {
+      setFilteredSpecialists([]);
+      setIsOpen(false);
+    }
+  }, [searchTerm, specialists]);
+
+  const handleSelect = (specialist) => {
+    onSelect(specialist);
+    setSearchTerm(specialist.fullName);
+
+    // Use setTimeout to ensure the dropdown closes immediately
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 0);
+  };
+
+  return (
+    <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={20}
+        />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar especialista"
+          className="w-full p-3 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+          onFocus={() => setIsOpen(filteredSpecialists.length > 0)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(filteredSpecialists.length > 0);
+          }}
+        />
+      </div>
+      {isOpen && (
+        <ul
+          className="absolute z-10 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {filteredSpecialists.map((specialist) => (
+            <li
+              key={specialist.username}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                handleSelect(specialist);
+              }}
+              className="p-3 hover:bg-gray-100 cursor-pointer flex items-center"
+            >
+              <div>
+                <p className="font-semibold">{specialist.fullName}</p>
+                <p className="text-sm text-gray-500">
+                  {specialist.username} - {specialist.department}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 export function Nuevoticket() {
   const [descripcionValue, setDescripcionValue] = useState("");
   const [solucionValue, setSolucionValue] = useState("");
@@ -110,11 +210,6 @@ export function Nuevoticket() {
       try {
         const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
         setTopics(topicsResponse.data.topics);
-
-        const usersResponse = await axios.get(
-          "http://127.0.0.1:5000/auth/users/names"
-        );
-        setUsers(usersResponse.data.user_names);
 
         const usuariosResponse = await fetch(
           "http://127.0.0.1:5000/tercerosda"
@@ -178,8 +273,8 @@ export function Nuevoticket() {
         estado: selectedStatus.name,
         tercero_nombre: usuarioSeleccionado.fullName,
         tercero_email: usuarioSeleccionado.email,
-        especialista_nombre: selectedUser.name,
-        especialista_email: selectedUserEmail,
+        especialista_nombre: selectedUser.fullName,
+        especialista_email: selectedUser.email,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
         descripcion_images: descripcionImages,
@@ -299,26 +394,16 @@ export function Nuevoticket() {
             )}
 
             {/* Especialista */}
-            <div>
+            <div className="text-black">
               <label className="block text-[#4a53a0] font-semibold mb-2">
                 Especialista
               </label>
-              <select
-                value={selectedUser?.name || ""}
-                onChange={(e) => {
-                  const selected = users.find((u) => u.name === e.target.value);
-                  setSelectedUser(selected);
-                  setSelectedUserEmail(selected?.email);
+              <SpecialistAutocomplete
+                onSelect={(specialist) => {
+                  setSelectedUser(specialist);
+                  setSelectedUserEmail(specialist.email);
                 }}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-              >
-                <option value="">Seleccionar Especialista</option>
-                {users.map((user) => (
-                  <option key={user.name} value={user.name}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
+              />
               {selectedUserEmail && (
                 <p className="text-sm text-gray-500 mt-2">
                   Correo: {selectedUserEmail}

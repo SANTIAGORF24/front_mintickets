@@ -126,7 +126,10 @@ export function Navbaruser() {
             <DropdownItem key="analytics" href="/estadisticas">
               Estadisticas
             </DropdownItem>
-            <DropdownItem key="configurations" href="/datos">
+            <DropdownItem key="configurations" href="/directorio">
+              Directorio Activo
+            </DropdownItem>
+            <DropdownItem key="configurations" href="/daactivo">
               Configuracion
             </DropdownItem>
             <DropdownItem key="logout" color="danger" onClick={handleLogout}>
