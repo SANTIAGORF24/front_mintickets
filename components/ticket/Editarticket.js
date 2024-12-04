@@ -13,6 +13,9 @@ import Autocomplete from "./Autocomplete";
 import { EditIcon } from "./Iconsactions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Search, Mail, User } from "react-feather";
+import TerceroAutocomplete from "./TerceroAutocomplete";
+import SpecialistAutocomplete from "./SpecialistAutocomplete";
 
 export function Editarticket({ ticketData, onTicketUpdate }) {
   const [descripcionValue, setDescripcionValue] = useState(
@@ -56,7 +59,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         setStatuses(statusesResponse.data.status);
 
         const tercerosResponse = await axios.get(
-          "http://127.0.0.1:5000/terceros"
+          "http://127.0.0.1:5000/tercerosda"
         );
         setTerceros(tercerosResponse.data.terceros);
 
@@ -89,6 +92,16 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         reader.readAsDataURL(file);
       });
     });
+    const filtered = tickets.filter(
+      (ticket) =>
+        ticket.especialista_nombre && // Add this check first
+        ticket.especialista_nombre.toLowerCase() ===
+          userFullName.toLowerCase() &&
+        ticket.estado && // Add this check for estado as well
+        !ticket.estado.toLowerCase().includes("solucionado") &&
+        (filterValue === "" ||
+          ticket.tema.toLowerCase().includes(filterValue.toLowerCase()))
+    );
 
     Promise.all(filePromises).then((base64Images) => {
       setter((prevImages) => [...prevImages, ...base64Images]);
@@ -112,23 +125,18 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       const ticketDataToUpdate = {
         id: ticketData.id,
         fecha_creacion: ticketData.fecha_creacion,
-        tema: selectedTopic ? selectedTopic.name : ticketData.tema,
-        estado: selectedStatus ? selectedStatus.name : ticketData.estado,
-        tercero_nombre: selectedTercero
-          ? selectedTercero.name
-          : ticketData.tercero_nombre,
-        tercero_email: selectedTercero
-          ? selectedTercero.email
-          : ticketData.tercero_email,
-        especialista_nombre: selectedUser
-          ? selectedUser.name
-          : ticketData.especialista_nombre,
-        especialista_email: selectedUser
-          ? selectedUser.email
-          : ticketData.especialista_email,
-        descripcion_caso: descripcionValue,
-        solucion_caso: solucionValue,
-        solucion_images: solucionImages,
+        tema: selectedTopic?.name || ticketData.tema || "",
+        estado: selectedStatus?.name || ticketData.estado || "",
+        tercero_nombre:
+          selectedTercero?.name || ticketData.tercero_nombre || "",
+        tercero_email: selectedTercero?.email || ticketData.tercero_email || "",
+        especialista_nombre:
+          selectedUser?.name || ticketData.especialista_nombre || "",
+        especialista_email:
+          selectedUser?.email || ticketData.especialista_email || "",
+        descripcion_caso: descripcionValue || "",
+        solucion_caso: solucionValue || "",
+        solucion_images: solucionImages || [],
       };
 
       await axios.patch(
@@ -138,13 +146,14 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
 
       toast.success("Tus cambios se han guardado correctamente");
 
-      onTicketUpdate(ticketDataToUpdate); // Call the callback function with the updated ticket data
+      onTicketUpdate(ticketDataToUpdate);
 
       setTimeout(() => {
         setIsOpen(false);
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar el ticket:", error);
+      toast.error("No se pudieron guardar los cambios");
     } finally {
       setLoadingUpdate(false);
     }
@@ -226,7 +235,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         </span>
       </Button>
 
-      <Modal isOpen={isOpen} onClose={closeModal} size="5xl">
+      <Modal isOpen={isOpen} onClose={closeModal} size="5xl" backdrop="blur">
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 text-blue-600">
             Editar ticket
@@ -263,46 +272,69 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                       defaultValue={ticketData ? ticketData.estado : ""}
                     />
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Tercero:
+                  <div className="text-black">
+                    <label className="block text-[#4a53a0] font-semibold mb-2">
+                      Tercero
                     </label>
-                    <Autocomplete
-                      items={terceros}
-                      label="Seleccionar tercero"
-                      placeholder="Seleccionar tercero"
+                    <TerceroAutocomplete
+                      usuarios={terceros}
                       onSelect={(value) => {
                         setSelectedTercero(value);
-                        setSelectedTerceroEmail(value.email);
+                        setSelectedTerceroEmail(value ? value.email : null);
                       }}
-                      defaultValue={ticketData ? ticketData.tercero_nombre : ""}
+                      initialValue={
+                        ticketData
+                          ? {
+                              name: ticketData.tercero_nombre,
+                              fullName: ticketData.tercero_nombre,
+                              email: ticketData.tercero_email,
+                            }
+                          : null
+                      }
                     />
                     {selectedTerceroEmail && (
-                      <h3 className="text-[#4a53a0] text-lg mt-2">
-                        {selectedTerceroEmail}
-                      </h3>
+                      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg text-black mt-2">
+                        <h3 className="text-lg font-bold text-blue-800 mb-3">
+                          Detalles del Tercero
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center">
+                            <Mail className="mr-3 text-blue-600" />
+                            <span className="text-gray-700">
+                              {selectedTerceroEmail}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Especialista:
+
+                  {/* Especialista */}
+                  <div className="text-black">
+                    <label className="block text-[#4a53a0] font-semibold mb-2">
+                      Especialista
                     </label>
-                    <Autocomplete
-                      items={users}
-                      label="Seleccionar especialista"
-                      placeholder="Seleccionar especialista"
-                      onSelect={(value) => {
-                        setSelectedUser(value);
-                        setSelectedUserEmail(value.email);
+                    <SpecialistAutocomplete
+                      onSelect={(specialist) => {
+                        setSelectedUser(specialist);
+                        setSelectedUserEmail(
+                          specialist ? specialist.email : null
+                        );
                       }}
-                      defaultValue={
-                        ticketData ? ticketData.especialista_nombre : ""
+                      initialValue={
+                        ticketData
+                          ? {
+                              name: ticketData.especialista_nombre,
+                              fullName: ticketData.especialista_nombre,
+                              email: ticketData.especialista_email,
+                            }
+                          : null
                       }
                     />
                     {selectedUserEmail && (
-                      <h3 className="text-[#4a53a0] text-lg mt-2">
-                        {selectedUserEmail}
-                      </h3>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Correo: {selectedUserEmail}
+                      </p>
                     )}
                   </div>
                 </div>

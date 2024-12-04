@@ -50,30 +50,14 @@ export function Tickets() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-        if (token) {
-          const response = await fetch(`${BACKEND_URL}auth/user`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const data = await response.json();
-          if (response.ok) {
-            setUserFullName(data.full_name);
-            setUserEmail(data.email);
-            setUserId(data.id);
-          } else {
-            console.error(data.message);
-          }
-        }
-      } catch (error) {
-        console.error("Error al obtener los datos del usuario:", error);
-      }
-    };
-
-    fetchUserData();
+    // Retrieve user data from localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      setUserFullName(userData.fullName);
+      setUserEmail(userData.email);
+      setUserId(userData.username);
+    }
   }, []);
 
   useEffect(() => {
@@ -101,12 +85,10 @@ export function Tickets() {
         ticket.especialista_nombre.toLowerCase() ===
           userFullName.toLowerCase() &&
         !ticket.estado.toLowerCase().includes("solucionado") &&
-        (ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
+        (filterValue === "" ||
+          ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
           ticket.estado.toLowerCase().includes(filterValue.toLowerCase()) ||
           ticket.tercero_nombre
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          ticket.especialista_nombre
             .toLowerCase()
             .includes(filterValue.toLowerCase()) ||
           ticket.descripcion_caso
@@ -189,7 +171,7 @@ export function Tickets() {
         <div className="flex justify-between items-center gap-3 mb-4">
           <Input
             className="w-[44%]"
-            placeholder="Search..."
+            placeholder="Buscar tickets..."
             value={filterValue}
             onValueChange={handleSearchChange}
             isClearable
@@ -254,7 +236,7 @@ export function Tickets() {
         <div className="flex justify-between items-center mt-4 text-black">
           <div>
             <label>
-              Rows por pagina:
+              Filas por página:
               <select value={rowsPerPage} onChange={handleRowsPerPageChange}>
                 <option value="5">5</option>
                 <option value="10">10</option>

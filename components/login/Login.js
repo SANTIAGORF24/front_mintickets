@@ -17,33 +17,41 @@ export function Login() {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const handleLogin = async () => {
+    if (!username || !password) {
+      toast.error("Por favor ingrese usuario y contraseña");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-        console.log(data.message);
         localStorage.setItem("access_token", data.access_token);
-        console.log("Token de acceso almacenado:", data.access_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("Inicio de sesión exitoso");
         router.push("/ticket");
       } else {
-        if (response.status === 404) {
-          toast.error("Usuario no encontrado");
+        if (response.status === 401) {
+          toast.error("Usuario no autorizado o credenciales inválidas");
         } else {
-          toast.error("Credenciales incorrectas");
+          toast.error(data.message || "Error al iniciar sesión");
         }
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      toast.error("Error al iniciar sesión");
+      toast.error("Error de conexión. Intente nuevamente.");
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +65,7 @@ export function Login() {
 
   return (
     <>
-      <div className="w-full h-svh flex items-center justify-center ">
+      <div className="w-full h-svh flex items-center justify-center">
         <div className="w-5/6 h-[80%] sm:h-[90%] rounded-lg border-2">
           <div className="flex items-center justify-center h-[90%]">
             <div className="w-5/6 h-full flex items-center justify-center">
@@ -73,7 +81,7 @@ export function Login() {
                     deporte
                   </h1>
                 </div>
-                <div className="">
+                <div>
                   <Input
                     type="text"
                     value={username}
@@ -84,7 +92,7 @@ export function Login() {
                     className="max-w-xs text-black"
                   />
                 </div>
-                <div className="">
+                <div>
                   <Input
                     label="Contraseña"
                     variant="bordered"
