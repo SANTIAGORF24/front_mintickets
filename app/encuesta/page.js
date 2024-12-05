@@ -5,12 +5,21 @@ import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Accordion, AccordionItem } from "@nextui-org/react";
+import { Download } from "react-feather";
+import { Paperclip } from "lucide-react";
+import { Button } from "@nextui-org/react";
 
 export default function Home({ searchParams }) {
   const { id } = searchParams;
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // State for attachments
+  const [descriptionAttachments, setDescriptionAttachments] = useState([]);
+  const [solAttachments, setSolAttachments] = useState([]);
+
+  // Survey ratings state
   const [ratings, setRatings] = useState({
     question1: 0,
     question2: 0,
@@ -18,26 +27,85 @@ export default function Home({ searchParams }) {
     solutionApproval: "",
   });
 
+  // Fetch ticket information
   useEffect(() => {
-    if (id) {
-      setLoading(true);
-      setError(null);
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`)
-        .then((response) => {
-          setTicket(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error al obtener la información del ticket:", error);
-          setError(
+    const fetchTicketAndAttachments = async () => {
+      if (!id) {
+        setError("No se proporcionó un ID de ticket válido");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch ticket details
+        const ticketResponse = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`
+        );
+        setTicket(ticketResponse.data);
+
+        // Fetch attachments
+        const attachmentsResponse = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/attachments`
+        );
+
+        // Separate description and solution attachments
+        const descAttachments = attachmentsResponse.data.filter(
+          (attachment) => attachment.is_description_file === true
+        );
+
+        const solutionAttachments = attachmentsResponse.data.filter(
+          (attachment) => attachment.is_description_file === false
+        );
+
+        setDescriptionAttachments(descAttachments);
+        setSolAttachments(solutionAttachments);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching ticket or attachments:", error);
+        setError(
+          error.response?.data?.message ||
             "No se pudo cargar la información del ticket. Por favor, intente más tarde."
-          );
-          setLoading(false);
-        });
-    }
+        );
+        setLoading(false);
+      }
+    };
+
+    fetchTicketAndAttachments();
   }, [id]);
 
+  // Download attachment function
+  const downloadAttachment = async (attachmentId) => {
+    try {
+      const response = await axios({
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
+        method: "GET",
+        responseType: "blob",
+      });
+
+      // Find the attachment in either description or solution attachments
+      const attachment = [...descriptionAttachments, ...solAttachments].find(
+        (att) => att.id === attachmentId
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        attachment ? attachment.file_name : "download"
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+      toast.error("No se pudo descargar el archivo");
+    }
+  };
+
+  // Rating change handler
   const handleRatingChange = (question, value) => {
     setRatings((prevRatings) => ({
       ...prevRatings,
@@ -45,8 +113,11 @@ export default function Home({ searchParams }) {
     }));
   };
 
+  // Submit survey
   const handleSubmit = () => {
     const { question1, question2, question3, solutionApproval } = ratings;
+
+    // Validate all fields are filled
     if (question1 && question2 && question3 && solutionApproval) {
       axios
         .post(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/rate`, {
@@ -70,18 +141,31 @@ export default function Home({ searchParams }) {
     }
   };
 
+  // Render loading state
   if (loading) {
-    return <div className="text-center py-10 text-black">Cargando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center py-10 text-black">Cargando...</div>
+      </div>
+    );
   }
 
+  // Render error state
   if (error) {
-    return <div className="text-center py-10 text-red-500">{error}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center py-10 text-red-500">{error}</div>
+      </div>
+    );
   }
 
+  // Render if no ticket found
   if (!ticket) {
     return (
-      <div className="text-center py-10 text-black">
-        No se encontró el ticket.
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center py-10 text-black">
+          No se encontró el ticket.
+        </div>
       </div>
     );
   }
@@ -90,6 +174,7 @@ export default function Home({ searchParams }) {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <ToastContainer />
       <div className="p-6 bg-white text-black rounded-lg shadow-lg w-5/6">
+        {/* Logo and Title Section */}
         <div className="mb-8 text-center">
           <Image
             src="/assets/img/avatar.png"
@@ -103,6 +188,7 @@ export default function Home({ searchParams }) {
           </h1>
         </div>
 
+        {/* Ticket Details Accordion */}
         <Accordion className="mb-8">
           <AccordionItem key="1" aria-label="Tema" title={<span>Tema</span>}>
             <p className="font-normal">{ticket.tema}</p>
@@ -120,6 +206,36 @@ export default function Home({ searchParams }) {
             title={<span>Descripción del caso</span>}
           >
             <p className="font-normal">{ticket.descripcion_caso}</p>
+
+            {/* Description Attachments */}
+            {descriptionAttachments.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  Archivos adjuntos de la descripción
+                </h3>
+                <div className="space-y-2">
+                  {descriptionAttachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+                    >
+                      <span className="text-sm text-gray-700 truncate">
+                        {attachment.file_name}
+                      </span>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        color="primary"
+                        onClick={() => downloadAttachment(attachment.id)}
+                      >
+                        <Download size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </AccordionItem>
           <AccordionItem
             key="4"
@@ -127,17 +243,49 @@ export default function Home({ searchParams }) {
             title={<span>Solución</span>}
           >
             <p className="font-normal">{ticket.solucion_caso}</p>
+
+            {/* Solution Attachments */}
+            {solAttachments.length > 0 && (
+              <>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  Archivos adjuntos de la Solución
+                </h3>
+                <div className="space-y-2">
+                  {solAttachments.map((attachmentSol) => (
+                    <div
+                      key={attachmentSol.id}
+                      className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+                    >
+                      <span className="text-sm text-gray-700 truncate">
+                        {attachmentSol.file_name}
+                      </span>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        color="primary"
+                        onClick={() => downloadAttachment(attachmentSol.id)}
+                      >
+                        <Download size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </AccordionItem>
         </Accordion>
 
+        {/* Survey Section */}
         <h2 className="text-xl font-bold mb-4 pt-8 text-center text-black">
           SEGÚN SU RESPUESTA CALIFIQUE LO SIGUIENTE:
         </h2>
 
         <div className="text-center text-black">
+          {/* Response Time Rating */}
           <div>
             <h2 className="text-lg font-semibold mb-2">
-              Tiempo en el que se le atendio
+              Tiempo en el que se le atendió
             </h2>
             <div className="flex justify-center space-x-2 mb-6">
               {[1, 2, 3, 4, 5].map((value) => (
@@ -156,6 +304,7 @@ export default function Home({ searchParams }) {
             </div>
           </div>
 
+          {/* Specialist Attitude Rating */}
           <div>
             <h2 className="text-lg font-semibold mb-2">
               Actitud del especialista
@@ -177,6 +326,7 @@ export default function Home({ searchParams }) {
             </div>
           </div>
 
+          {/* Specialist Response Rating */}
           <div>
             <h2 className="text-lg font-semibold mb-2">
               Respuesta del especialista
@@ -198,6 +348,7 @@ export default function Home({ searchParams }) {
             </div>
           </div>
 
+          {/* Solution Approval */}
           <div>
             <h2 className="text-lg font-semibold mb-2">
               ¿Aprueba la solución del ticket?
@@ -227,6 +378,7 @@ export default function Home({ searchParams }) {
           </div>
         </div>
 
+        {/* Submit Button */}
         <div className="flex justify-center mt-8">
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded-full"
