@@ -84,7 +84,7 @@ const Home = () => {
   }, [ticketData]);
 
   // Modifica la función de descarga para manejar ambos tipos de archivos
-  const downloadAttachment = async (attachmentId) => {
+  const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
         url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
@@ -92,10 +92,10 @@ const Home = () => {
         responseType: "blob",
       });
 
-      // Busca en ambos arreglos de archivos adjuntos
-      const attachment =
-        descriptionAttachments.find((att) => att.id === attachmentId) ||
-        solutionAttachments.find((att) => att.id === attachmentId);
+      // Busca el archivo en el arreglo correcto basado en isDescriptionFile
+      const attachment = isDescriptionFile
+        ? descriptionAttachments.find((att) => att.id === attachmentId)
+        : solutionAttachments.find((att) => att.id === attachmentId);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -240,7 +240,7 @@ const Home = () => {
                                 variant="light"
                                 color="primary"
                                 onClick={() =>
-                                  downloadAttachment(attachment.id)
+                                  downloadAttachment(attachment.id, true)
                                 }
                               >
                                 <Download size={16} />
@@ -277,7 +277,9 @@ const Home = () => {
                             size="sm"
                             variant="light"
                             color="primary"
-                            onClick={() => downloadAttachment(attachment.id)}
+                            onClick={() =>
+                              downloadAttachment(attachment.id, false)
+                            }
                           >
                             <Download size={16} />
                           </Button>

@@ -75,7 +75,7 @@ export default function Home({ searchParams }) {
   }, [id]);
 
   // Download attachment function
-  const downloadAttachment = async (attachmentId) => {
+  const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
         url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
@@ -83,12 +83,14 @@ export default function Home({ searchParams }) {
         responseType: "blob",
       });
 
-      // Find the attachment in either description or solution attachments
-      const attachment = [...descriptionAttachments, ...solAttachments].find(
-        (att) => att.id === attachmentId
-      );
+      // Buscar el archivo en el array correcto basado en isDescriptionFile
+      const attachments = isDescriptionFile
+        ? descriptionAttachments
+        : solAttachments;
 
-      // Create download link
+      const attachment = attachments.find((att) => att.id === attachmentId);
+
+      // Crear un enlace y activar la descarga
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -227,7 +229,7 @@ export default function Home({ searchParams }) {
                         size="sm"
                         variant="light"
                         color="primary"
-                        onClick={() => downloadAttachment(attachment.id)}
+                        onClick={() => downloadAttachment(attachment.id, true)}
                       >
                         <Download size={16} />
                       </Button>
@@ -264,7 +266,9 @@ export default function Home({ searchParams }) {
                         size="sm"
                         variant="light"
                         color="primary"
-                        onClick={() => downloadAttachment(attachmentSol.id)}
+                        onClick={() =>
+                          downloadAttachment(attachmentSol.id, false)
+                        }
                       >
                         <Download size={16} />
                       </Button>

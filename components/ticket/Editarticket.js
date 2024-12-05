@@ -269,7 +269,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   }, [ticketData]);
 
   // Download attachment function
-  const downloadAttachment = async (attachmentId) => {
+  const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
         url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
@@ -277,15 +277,12 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         responseType: "blob",
       });
 
-      // Buscar primero en solAttachments
-      const attachmentSol = [...solAttachments].find(
-        (att) => att.id === attachmentId
-      );
+      // Buscar el archivo en el array correcto basado en isDescriptionFile
+      const attachments = isDescriptionFile
+        ? descriptionAttachments
+        : solAttachments;
 
-      // Si no se encuentra en solAttachments, buscar en descriptionAttachments
-      const attachment =
-        attachmentSol ||
-        [...descriptionAttachments].find((att) => att.id === attachmentId);
+      const attachment = attachments.find((att) => att.id === attachmentId);
 
       // Crear un enlace y activar la descarga
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -543,7 +540,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                                 variant="light"
                                 color="primary"
                                 onClick={() =>
-                                  downloadAttachment(attachment.id)
+                                  downloadAttachment(attachment.id, true)
                                 }
                               >
                                 <Download size={16} />
@@ -621,7 +618,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                                 variant="light"
                                 color="primary"
                                 onClick={() =>
-                                  downloadAttachment(attachmentSol.id)
+                                  downloadAttachment(attachmentSol.id, false)
                                 }
                               >
                                 <Download size={16} />
