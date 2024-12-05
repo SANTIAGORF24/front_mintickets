@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, CircularProgress } from "@nextui-org/react";
-import { User, Mail, Search } from "lucide-react";
+import { User, Mail, Search, FileUp, Paperclip } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TerceroAutocomplete from "./TerceroAutocomplete";
@@ -23,8 +23,7 @@ export function Nuevoticket() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
 
-  const [descripcionImages, setDescripcionImages] = useState([]);
-  const [solucionImages, setSolucionImages] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -55,34 +54,73 @@ export function Nuevoticket() {
     fetchData();
   }, []);
 
-  const handleImageUpload = (files, setter) => {
-    const filePromises = Array.from(files).map((file) => {
+  // Handle file upload
+  const handleFileUpload = (files) => {
+    const newFiles = Array.from(files).map((file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => {
+          resolve({
+            fileName: file.name,
+            fileType: file.type,
+            base64Content: e.target.result,
+          });
+        };
         reader.readAsDataURL(file);
       });
     });
 
-    Promise.all(filePromises).then((base64Images) => {
-      setter((prevImages) => [...prevImages, ...base64Images]);
+    Promise.all(newFiles).then((processedFiles) => {
+      setAttachments((prevAttachments) => [
+        ...prevAttachments,
+        ...processedFiles,
+      ]);
     });
-  };
-
-  const handleDrop = (event, setter) => {
-    event.preventDefault();
-    const files = event.dataTransfer.files;
-    handleImageUpload(files, setter);
-  };
-
-  const handleDragOver = (event) => {
-    event.preventDefault();
   };
 
   const handleSeleccionTercero = (usuario) => {
     setUsuarioSeleccionado(usuario);
   };
 
+  // Handle pasted images
+  const handlePastedImage = (event) => {
+    const items = event.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setAttachments((prevAttachments) => [
+              ...prevAttachments,
+              {
+                fileName: `pasted-image-${new Date().toISOString()}.png`,
+                fileType: file.type,
+                base64Content: e.target.result,
+              },
+            ]);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  };
+
+  // Handle file drop
+  const handleFileDrop = (event) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    handleFileUpload(files);
+  };
+
+  // Remove attachment
+  const removeAttachment = (index) => {
+    setAttachments((prevAttachments) =>
+      prevAttachments.filter((_, i) => i !== index)
+    );
+  };
+
+  // Submit handler with updated attachment logic
   const handleSubmit = async () => {
     try {
       if (!selectedTopic || !usuarioSeleccionado || !selectedUser) {
@@ -102,8 +140,7 @@ export function Nuevoticket() {
         especialista_email: selectedUser.email,
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
-        descripcion_images: descripcionImages,
-        solucion_images: solucionImages,
+        attachments: attachments,
       };
 
       const response = await axios.post(
@@ -125,11 +162,44 @@ export function Nuevoticket() {
     }
   };
 
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 text-red-800 rounded-lg">{error}</div>
-    );
-  }
+  // Render method for attachments
+  const renderAttachments = () => {
+    return attachments.map((attachment, index) => {
+      const fileIcon = getFileIcon(attachment.fileType);
+      return (
+        <div
+          key={index}
+          className="flex items-center bg-gray-100 p-2 rounded-lg mb-2"
+        >
+          {fileIcon}
+          <span className="ml-2 flex-grow truncate">{attachment.fileName}</span>
+          <button
+            onClick={() => removeAttachment(index)}
+            className="text-red-500 hover:text-red-700"
+          >
+            ✕
+          </button>
+        </div>
+      );
+    });
+  };
+
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith("image/"))
+      return <img src="/image-icon.svg" className="w-6 h-6" />;
+    if (fileType === "application/pdf")
+      return <img src="/pdf-icon.svg" className="w-6 h-6" />;
+    if (
+      fileType === "application/vnd.ms-powerpoint" ||
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
+      return <img src="/ppt-icon.svg" className="w-6 h-6" />;
+    if (fileType.startsWith("video/"))
+      return <img src="/video-icon.svg" className="w-6 h-6" />;
+    return <Paperclip className="w-6 h-6 text-gray-500" />;
+  };
 
   return (
     <div className="bg-gray-50  flex items-center justify-center p-6">
@@ -245,48 +315,38 @@ export function Nuevoticket() {
                 Descripción del Caso
               </label>
               <div
-                onDrop={(e) => handleDrop(e, setDescripcionImages)}
-                onDragOver={handleDragOver}
+                onDrop={handleFileDrop}
+                onDragOver={(e) => e.preventDefault()}
                 className="border-2 border-dashed border-gray-300 rounded-lg p-4"
               >
                 <textarea
                   className="w-full h-48 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   value={descripcionValue}
                   onChange={(e) => setDescripcionValue(e.target.value)}
-                  placeholder="Describe el caso detalladamente..."
+                  onPaste={handlePastedImage}
+                  placeholder="Describe el caso detalladamente... Puedes pegar imágenes directamente aquí."
                 />
 
-                {/* Image Upload Section */}
+                {/* File Upload Section */}
                 <div className="mt-4">
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
-                    onChange={(e) =>
-                      handleImageUpload(e.target.files, setDescripcionImages)
-                    }
+                    accept=".pdf,.ppt,.pptx,.mp4,.jpg,.jpeg,.png,.gif,.xls,.xlsx"
+                    onChange={(e) => handleFileUpload(e.target.files)}
                     className="hidden"
-                    id="descripcionImageInput"
+                    id="fileInput"
                   />
                   <label
-                    htmlFor="descripcionImageInput"
-                    className="block text-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition"
+                    htmlFor="fileInput"
+                    className="flex items-center justify-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition"
                   >
-                    + Añadir imágenes
+                    <FileUp className="mr-2" />+ Añadir archivos
                   </label>
 
-                  {/* Uploaded Images Preview */}
-                  {descripcionImages.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {descripcionImages.map((img, index) => (
-                        <img
-                          key={index}
-                          src={img}
-                          alt={`Uploaded ${index}`}
-                          className="w-24 h-24 object-cover rounded-lg"
-                        />
-                      ))}
-                    </div>
+                  {/* Uploaded Files Preview */}
+                  {attachments.length > 0 && (
+                    <div className="mt-4 space-y-2">{renderAttachments()}</div>
                   )}
                 </div>
               </div>

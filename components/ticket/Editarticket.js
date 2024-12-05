@@ -13,7 +13,7 @@ import Autocomplete from "./Autocomplete";
 import { EditIcon } from "./Iconsactions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Search, Mail, User } from "react-feather";
+import { Search, Mail, User, Download } from "react-feather";
 import TerceroAutocomplete from "./TerceroAutocomplete";
 import SpecialistAutocomplete from "./SpecialistAutocomplete";
 
@@ -43,6 +43,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   const [selectedUserEmail, setSelectedUserEmail] = useState(
     ticketData ? ticketData.especialista_email : null
   );
+  const [descriptionAttachments, setDescriptionAttachments] = useState([]);
 
   const [solucionImages, setSolucionImages] = useState([]);
   const fileInputRef = useRef(null);
@@ -224,6 +225,63 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     }
   };
 
+  // Fetch attachments for a specific ticket
+
+  useEffect(() => {
+    const fetchAttachments = async () => {
+      try {
+        if (ticketData && ticketData.id) {
+          const response = await axios.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments`
+          );
+
+          // Filter only description attachments
+          const descAttachments = response.data.filter(
+            (attachment) => attachment.is_description_file
+          );
+
+          setDescriptionAttachments(descAttachments);
+        }
+      } catch (error) {
+        console.error("Error fetching attachments:", error);
+        toast.error("No se pudieron cargar los archivos adjuntos");
+      }
+    };
+
+    fetchAttachments();
+  }, [ticketData]);
+
+  // Download attachment function
+  const downloadAttachment = async (attachmentId) => {
+    try {
+      const response = await axios({
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
+        method: "GET",
+        responseType: "blob", // Important
+      });
+
+      // Find the attachment to get the filename
+      const attachment = descriptionAttachments.find(
+        (att) => att.id === attachmentId
+      );
+
+      // Create a link element and trigger download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        attachment ? attachment.file_name : "download"
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+      toast.error("No se pudo descargar el archivo");
+    }
+  };
+
   return (
     <>
       <Button className="bg-transparent" onPress={openModal}>
@@ -351,6 +409,36 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                       value={descripcionValue}
                       onChange={(e) => setDescripcionValue(e.target.value)}
                     ></textarea>
+                    {descriptionAttachments.length > 0 && (
+                      <div className="mt-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                          Archivos adjuntos de la descripción
+                        </h3>
+                        <div className="space-y-2">
+                          {descriptionAttachments.map((attachment) => (
+                            <div
+                              key={attachment.id}
+                              className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+                            >
+                              <span className="text-sm text-gray-700 truncate">
+                                {attachment.file_name}
+                              </span>
+                              <Button
+                                isIconOnly
+                                size="sm"
+                                variant="light"
+                                color="primary"
+                                onClick={() =>
+                                  downloadAttachment(attachment.id)
+                                }
+                              >
+                                <Download size={16} />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label
