@@ -18,8 +18,6 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 
-const BACKEND_URL = "http://127.0.0.1:5000/";
-
 const statusColorMap = {
   Creado: "danger",
   "En proceso": "warning",
@@ -62,7 +60,7 @@ export function Tickets() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`${BACKEND_URL}tickets`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -100,7 +98,7 @@ export function Tickets() {
 
   const deleteTicket = (id) => {
     axios
-      .delete(`${BACKEND_URL}tickets/${id}`)
+      .delete(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`)
       .then(() => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)

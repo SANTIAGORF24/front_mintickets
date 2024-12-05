@@ -18,7 +18,9 @@ const TerceroAutocomplete = ({ onSelect, initialValue = null }) => {
     const fetchTerceros = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("http://127.0.0.1:5000/tercerosda");
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda`
+        );
         const tercerosData = response.data.terceros || response.data;
 
         const processedTerceros = tercerosData.map((tercero) => ({

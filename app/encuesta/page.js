@@ -23,7 +23,7 @@ export default function Home({ searchParams }) {
       setLoading(true);
       setError(null);
       axios
-        .get(`http://127.0.0.1:5000/tickets/${id}`)
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`)
         .then((response) => {
           setTicket(response.data);
           setLoading(false);
@@ -49,7 +49,7 @@ export default function Home({ searchParams }) {
     const { question1, question2, question3, solutionApproval } = ratings;
     if (question1 && question2 && question3 && solutionApproval) {
       axios
-        .post(`http://127.0.0.1:5000/tickets/${id}/rate`, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/rate`, {
           tiempo_de_respuesta: ratings.question1,
           actitud: ratings.question2,
           respuesta: ratings.question3,

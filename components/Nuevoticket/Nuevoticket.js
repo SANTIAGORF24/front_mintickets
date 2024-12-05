@@ -31,11 +31,13 @@ export function Nuevoticket() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
+        const topicsResponse = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/topics`
+        );
         setTopics(topicsResponse.data.topics);
 
         const usuariosResponse = await fetch(
-          "http://127.0.0.1:5000/tercerosda"
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda`
         );
 
         if (!usuariosResponse.ok) {
@@ -105,7 +107,7 @@ export function Nuevoticket() {
       };
 
       const response = await axios.post(
-        "http://127.0.0.1:5000/tickets/register",
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/register`,
         ticketData
       );
 

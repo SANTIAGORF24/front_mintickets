@@ -50,23 +50,20 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const topicsResponse = await axios.get("http://127.0.0.1:5000/topics");
+        const topicsResponse = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/topics`
+        );
         setTopics(topicsResponse.data.topics);
 
         const statusesResponse = await axios.get(
-          "http://127.0.0.1:5000/status"
+          `${process.env.NEXT_PUBLIC_API_URL}/status`
         );
         setStatuses(statusesResponse.data.status);
 
         const tercerosResponse = await axios.get(
-          "http://127.0.0.1:5000/tercerosda"
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda`
         );
         setTerceros(tercerosResponse.data.terceros);
-
-        const usersResponse = await axios.get(
-          "http://127.0.0.1:5000/auth/users/names"
-        );
-        setUsers(usersResponse.data.user_names);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -140,7 +137,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.patch(
-        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketDataToUpdate.id}`,
         ticketDataToUpdate
       );
 
@@ -193,7 +190,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.put(
-        `http://127.0.0.1:5000/tickets/${ticketDataToUpdate.id}/finalize`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketDataToUpdate.id}/finalize`,
         ticketDataToUpdate
       );
 
