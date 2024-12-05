@@ -15,6 +15,8 @@ const Home = () => {
   const [ticketData, setTicketData] = useState(null);
   const [error, setError] = useState("");
   const [descriptionAttachments, setDescriptionAttachments] = useState([]);
+  // Agrega este nuevo estado
+  const [solutionAttachments, setSolutionAttachments] = useState([]);
 
   const fetchTicket = async () => {
     try {
@@ -59,12 +61,18 @@ const Home = () => {
             `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments`
           );
 
-          // Filter only description attachments
+          // Filter description attachments
           const descAttachments = response.data.filter(
             (attachment) => attachment.is_description_file
           );
 
+          // Filter solution attachments (nuevo)
+          const solAttachments = response.data.filter(
+            (attachment) => !attachment.is_description_file
+          );
+
           setDescriptionAttachments(descAttachments);
+          setSolutionAttachments(solAttachments); // Agrega esta línea
         }
       } catch (error) {
         console.error("Error fetching attachments:", error);
@@ -75,21 +83,20 @@ const Home = () => {
     fetchAttachments();
   }, [ticketData]);
 
-  // Download attachment function
+  // Modifica la función de descarga para manejar ambos tipos de archivos
   const downloadAttachment = async (attachmentId) => {
     try {
       const response = await axios({
         url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
         method: "GET",
-        responseType: "blob", // Important
+        responseType: "blob",
       });
 
-      // Find the attachment to get the filename
-      const attachment = descriptionAttachments.find(
-        (att) => att.id === attachmentId
-      );
+      // Busca en ambos arreglos de archivos adjuntos
+      const attachment =
+        descriptionAttachments.find((att) => att.id === attachmentId) ||
+        solutionAttachments.find((att) => att.id === attachmentId);
 
-      // Create a link element and trigger download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -105,6 +112,7 @@ const Home = () => {
       toast.error("No se pudo descargar el archivo");
     }
   };
+
   // Función para determinar el progreso y el color
   const getProgressProps = () => {
     if (ticketData) {
@@ -211,34 +219,38 @@ const Home = () => {
                   title="Descripción del Caso"
                 >
                   <p>{ticketData.descripcion_caso}</p>
-                  {descriptionAttachments.length > 0 && (
-                    <div className="mt-4">
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">
-                        Archivos adjuntos de la descripción
-                      </h3>
-                      <div className="space-y-2">
-                        {descriptionAttachments.map((attachment) => (
-                          <div
-                            key={attachment.id}
-                            className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
-                          >
-                            <span className="text-sm text-gray-700 truncate">
-                              {attachment.file_name}
-                            </span>
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="light"
-                              color="primary"
-                              onClick={() => downloadAttachment(attachment.id)}
+                  <div className="space-y-2">
+                    {descriptionAttachments.length > 0 && (
+                      <div className="mt-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                          Archivos adjuntos de la descripción
+                        </h3>
+                        <div className="space-y-2">
+                          {descriptionAttachments.map((attachment) => (
+                            <div
+                              key={attachment.id}
+                              className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
                             >
-                              <Download size={16} />
-                            </Button>
-                          </div>
-                        ))}
+                              <span className="text-sm text-gray-700 truncate">
+                                {attachment.file_name}
+                              </span>
+                              <Button
+                                isIconOnly
+                                size="sm"
+                                variant="light"
+                                color="primary"
+                                onClick={() =>
+                                  downloadAttachment(attachment.id)
+                                }
+                              >
+                                <Download size={16} />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </AccordionItem>
                 {ticketData.estado === "Solucionado" && (
                   <AccordionItem
@@ -247,6 +259,31 @@ const Home = () => {
                     title="Solución del Caso"
                   >
                     <p>{ticketData.solucion_caso}</p>
+
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      Archivos adjuntos de la Solucion
+                    </h3>
+                    <div className="space-y-2">
+                      {solutionAttachments.map((attachment) => (
+                        <div
+                          key={attachment.id}
+                          className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+                        >
+                          <span className="text-sm text-gray-700 truncate">
+                            {attachment.file_name}
+                          </span>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            color="primary"
+                            onClick={() => downloadAttachment(attachment.id)}
+                          >
+                            <Download size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </AccordionItem>
                 )}
                 {ticketData.estado === "Solucionado" &&

@@ -14,6 +14,8 @@ import { EditIcon } from "./Iconsactions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Search, Mail, User, Download } from "react-feather";
+import { FileUp, Paperclip } from "lucide-react";
+
 import TerceroAutocomplete from "./TerceroAutocomplete";
 import SpecialistAutocomplete from "./SpecialistAutocomplete";
 
@@ -44,6 +46,9 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     ticketData ? ticketData.especialista_email : null
   );
   const [descriptionAttachments, setDescriptionAttachments] = useState([]);
+  const [solAttachments, setsolAttachments] = useState([]);
+
+  const [attachments, setAttachments] = useState([]);
 
   const [solucionImages, setSolucionImages] = useState([]);
   const fileInputRef = useRef(null);
@@ -135,6 +140,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         descripcion_caso: descripcionValue || "",
         solucion_caso: solucionValue || "",
         solucion_images: solucionImages || [],
+        attachments: attachments,
       };
 
       await axios.patch(
@@ -188,6 +194,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         descripcion_caso: descripcionValue,
         solucion_caso: solucionValue,
         solucion_images: solucionImages,
+        attachments: attachments,
       };
 
       await axios.put(
@@ -231,16 +238,26 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     const fetchAttachments = async () => {
       try {
         if (ticketData && ticketData.id) {
+          // Cambia esta línea a la ruta general de attachments
           const response = await axios.get(
             `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments`
           );
 
-          // Filter only description attachments
+          // Filtrar archivos adjuntos de descripción
           const descAttachments = response.data.filter(
-            (attachment) => attachment.is_description_file
+            (attachment) => attachment.is_description_file === true
+          );
+
+          // Filtrar archivos adjuntos de solución
+          const solucionAttachments = response.data.filter(
+            (attachment) => attachment.is_description_file === false
           );
 
           setDescriptionAttachments(descAttachments);
+          setsolAttachments(solucionAttachments);
+
+          // Si también necesitas guardar los archivos de solución
+          // setSolucionAttachments(solucionAttachments);
         }
       } catch (error) {
         console.error("Error fetching attachments:", error);
@@ -257,15 +274,20 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       const response = await axios({
         url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
         method: "GET",
-        responseType: "blob", // Important
+        responseType: "blob",
       });
 
-      // Find the attachment to get the filename
-      const attachment = descriptionAttachments.find(
+      // Buscar primero en solAttachments
+      const attachmentSol = [...solAttachments].find(
         (att) => att.id === attachmentId
       );
 
-      // Create a link element and trigger download
+      // Si no se encuentra en solAttachments, buscar en descriptionAttachments
+      const attachment =
+        attachmentSol ||
+        [...descriptionAttachments].find((att) => att.id === attachmentId);
+
+      // Crear un enlace y activar la descarga
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -280,6 +302,98 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       console.error("Error downloading attachment:", error);
       toast.error("No se pudo descargar el archivo");
     }
+  };
+  const handlePastedImage = (event) => {
+    const items = event.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setAttachments((prevAttachments) => [
+              ...prevAttachments,
+              {
+                fileName: `pasted-image-${new Date().toISOString()}.png`,
+                fileType: file.type,
+                base64Content: e.target.result,
+              },
+            ]);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = (files) => {
+    const newFiles = Array.from(files).map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            fileName: file.name,
+            fileType: file.type,
+            base64Content: e.target.result,
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(newFiles).then((processedFiles) => {
+      setAttachments((prevAttachments) => [
+        ...prevAttachments,
+        ...processedFiles,
+      ]);
+    });
+  };
+
+  // Remove attachment
+  const removeAttachment = (index) => {
+    setAttachments((prevAttachments) =>
+      prevAttachments.filter((_, i) => i !== index)
+    );
+  };
+
+  // Render method for attachments
+  const renderAttachments = () => {
+    return attachments.map((attachment, index) => {
+      const fileIcon = getFileIcon(attachment.fileType);
+      return (
+        <div
+          key={index}
+          className="flex items-center bg-gray-100 p-2 rounded-lg mb-2"
+        >
+          {fileIcon}
+          <span className="ml-2 flex-grow truncate">{attachment.fileName}</span>
+          <button
+            onClick={() => removeAttachment(index)}
+            className="text-red-500 hover:text-red-700"
+          >
+            ✕
+          </button>
+        </div>
+      );
+    });
+  };
+
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith("image/"))
+      return <img src="/image-icon.svg" className="w-6 h-6" />;
+    if (fileType === "application/pdf")
+      return <img src="/pdf-icon.svg" className="w-6 h-6" />;
+    if (
+      fileType === "application/vnd.ms-powerpoint" ||
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
+      return <img src="/ppt-icon.svg" className="w-6 h-6" />;
+    if (fileType.startsWith("video/"))
+      return <img src="/video-icon.svg" className="w-6 h-6" />;
+    return <Paperclip className="w-6 h-6 text-gray-500" />;
   };
 
   return (
@@ -452,7 +566,9 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                       name="solucion_caso"
                       rows="3"
                       className="mt-1 block w-full rounded-md bg-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black p-3"
+                      placeholder="Escriba la solucion al caso... Puedes pegar imágenes directamente aquí."
                       value={solucionValue}
+                      onPaste={handlePastedImage}
                       onChange={(e) => setSolucionValue(e.target.value)}
                     ></textarea>
                     {finalizeError && (
@@ -460,37 +576,62 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                         {finalizeError}
                       </div>
                     )}
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      multiple
-                      style={{ display: "none" }}
-                      onChange={(e) =>
-                        handleImageUpload(e.target.files, setSolucionImages)
-                      }
-                    />
-                    <div
-                      onDrop={(e) => handleDrop(e, setSolucionImages)}
-                      onDragOver={handleDragOver}
-                      className="border-2 border-dashed border-gray-400 rounded-lg p-4 mt-2"
-                      style={{ cursor: "pointer" }}
-                      onClick={handleSelectImagesClick}
-                    >
-                      <p className="text-center text-gray-500">
-                        Arrastra y suelta las imágenes aquí o haz clic para
-                        seleccionar
-                      </p>
+
+                    {/* File Upload Section */}
+                    <div className="mt-4">
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.ppt,.pptx,.mp4,.jpg,.jpeg,.png,.gif,.xls,.xlsx"
+                        onChange={(e) => handleFileUpload(e.target.files)}
+                        className="hidden"
+                        id="fileInput"
+                      />
+                      <label
+                        htmlFor="fileInput"
+                        className="flex items-center justify-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition text-black"
+                      >
+                        <FileUp className="mr-2 text-black" />+ Añadir archivos
+                      </label>
+
+                      {/* Uploaded Files Preview */}
+                      {attachments.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          {renderAttachments()}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-wrap mt-2">
-                      {solucionImages.map((image, index) => (
-                        <img
-                          key={index}
-                          src={image}
-                          alt={`Solucion ${index}`}
-                          className="w-24 h-24 object-cover m-1"
-                        />
-                      ))}
-                    </div>
+                    {solAttachments.length > 0 && (
+                      <div className="mt-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                          Archivos adjuntos de la descripción
+                        </h3>
+                        <div className="space-y-2">
+                          {solAttachments.map((attachmentSol) => (
+                            <div
+                              key={attachmentSol.id}
+                              className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+                            >
+                              <span className="text-sm text-gray-700 truncate">
+                                {attachmentSol.file_name}
+                              </span>
+                              <Button
+                                isIconOnly
+                                size="sm"
+                                variant="light"
+                                color="primary"
+                                onClick={() =>
+                                  downloadAttachment(attachmentSol.id)
+                                }
+                              >
+                                <Download size={16} />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* File Upload Section */}
                   </div>
                 </div>
               </div>
