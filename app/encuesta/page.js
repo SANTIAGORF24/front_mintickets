@@ -6,7 +6,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Accordion, AccordionItem } from "@nextui-org/react";
 import { Download } from "react-feather";
-import { Paperclip } from "lucide-react";
 import { Button } from "@nextui-org/react";
 
 export default function Home({ searchParams }) {
@@ -14,6 +13,8 @@ export default function Home({ searchParams }) {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [surveyResult, setSurveyResult] = useState(null);
 
   // State for attachments
   const [descriptionAttachments, setDescriptionAttachments] = useState([]);
@@ -129,9 +130,8 @@ export default function Home({ searchParams }) {
           solutionApproval: ratings.solutionApproval,
         })
         .then((response) => {
-          toast.success(
-            "Sus respuestas han sido enviadas. ¡Gracias por responder!"
-          );
+          setSurveyResult(solutionApproval);
+          setSurveySubmitted(true);
         })
         .catch((error) => {
           toast.error(
@@ -161,17 +161,56 @@ export default function Home({ searchParams }) {
     );
   }
 
-  // Render if no ticket found
-  if (!ticket) {
+  // Render thank you page after survey submission
+  if (surveySubmitted) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center py-10 text-black">
-          No se encontró el ticket.
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-100 to-blue-200">
+        <div className="text-center p-10 bg-white rounded-xl shadow-2xl max-w-md">
+          <Image
+            src="/assets/img/avatar.png"
+            alt="Soporte TICS Logo"
+            className="mx-auto mb-6 h-24 w-24"
+            width={100}
+            height={100}
+          />
+
+          {surveyResult === "Sí" ? (
+            <>
+              <h1 className="text-3xl font-bold text-green-600 mb-4">
+                ¡Caso Cerrado Exitosamente!
+              </h1>
+              <p className="text-gray-700 mb-6 text-lg">
+                Gracias por confirmar la solución. El caso ha sido cerrado
+                satisfactoriamente. Apreciamos su colaboración y esperamos haber
+                resuelto su inconveniente.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-red-500 mb-4">
+                Seguimiento del Caso
+              </h1>
+              <p className="text-gray-700 mb-6 text-lg">
+                El especialista se comunicará con usted internamente. Por favor,
+                esté pendiente de las plataformas de Teams y Outlook para
+                validar por qué no se cerró el caso y poder solucionar su
+                inconveniente.
+              </p>
+            </>
+          )}
+
+          <div className="flex justify-center">
+            <div className="w-16 h-1 bg-blue-500 rounded-full"></div>
+          </div>
+          <p className="text-sm text-gray-500 mt-6">
+            Juntos construimos un mejor servicio.
+          </p>
         </div>
       </div>
     );
   }
 
+  // Render survey form
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <ToastContainer />
@@ -360,16 +399,6 @@ export default function Home({ searchParams }) {
             <div className="flex justify-center space-x-4 mb-6">
               <button
                 className={`px-4 py-2 rounded-full border ${
-                  ratings.solutionApproval === "Sí"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-black"
-                }`}
-                onClick={() => handleRatingChange("solutionApproval", "Sí")}
-              >
-                Sí
-              </button>
-              <button
-                className={`px-4 py-2 rounded-full border ${
                   ratings.solutionApproval === "No"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-black"
@@ -377,6 +406,16 @@ export default function Home({ searchParams }) {
                 onClick={() => handleRatingChange("solutionApproval", "No")}
               >
                 No
+              </button>
+              <button
+                className={`px-4 py-2 rounded-full border ${
+                  ratings.solutionApproval === "Sí"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-black"
+                }`}
+                onClick={() => handleRatingChange("solutionApproval", "Sí")}
+              >
+                Sí
               </button>
             </div>
           </div>
