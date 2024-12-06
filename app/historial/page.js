@@ -1,24 +1,47 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Progress, Accordion, AccordionItem } from "@nextui-org/react";
-import { Button } from "@nextui-org/react";
-
-import "react-toastify/dist/ReactToastify.css";
-import { Search, Mail, User, Download } from "react-feather";
+import {
+  Search,
+  FileText,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Download,
+  RefreshCw,
+} from "lucide-react";
 
 const Home = () => {
   const [ticketId, setTicketId] = useState("");
   const [ticketData, setTicketData] = useState(null);
   const [error, setError] = useState("");
   const [descriptionAttachments, setDescriptionAttachments] = useState([]);
-  // Agrega este nuevo estado
   const [solutionAttachments, setSolutionAttachments] = useState([]);
+  const [inputError, setInputError] = useState("");
+
+  const validateTicketId = (value) => {
+    // Only allow numbers
+    const numericValue = value.replace(/\D/g, "");
+    setTicketId(numericValue);
+
+    // Check if input is empty
+    if (numericValue.trim() === "") {
+      setInputError("El ID del ticket es obligatorio");
+    } else {
+      setInputError("");
+    }
+  };
 
   const fetchTicket = async () => {
+    // Validate before fetching
+    if (ticketId.trim() === "") {
+      setInputError("El ID del ticket es obligatorio");
+      return;
+    }
+
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketId}`
@@ -26,22 +49,25 @@ const Home = () => {
       setTicketData(response.data);
       setError("");
 
-      // Mostrar notificación según el estado del ticket
-      if (response.data.estado === "Creado") {
-        toast.error("Su ticket está en estado Creado", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      } else if (response.data.estado === "En proceso") {
-        toast.warning("Su ticket está en estado En proceso", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      } else if (response.data.estado === "Solucionado") {
-        toast.success("Su ticket ha sido resuelto", {
-          position: "top-right",
-          autoClose: 5000,
-        });
+      const toastOptions = {
+        position: "top-right",
+        autoClose: 5000,
+        className: "rounded-lg",
+      };
+
+      switch (response.data.estado) {
+        case "Creado":
+          toast.error("Ticket iniciado", toastOptions);
+          break;
+        case "En proceso":
+          toast.warning("Ticket en desarrollo", toastOptions);
+          break;
+        case "Solucionado":
+          toast.success("Ticket finalizado", toastOptions);
+          break;
+        case "Devuelto":
+          toast.info("Ticket devuelto", toastOptions);
+          break;
       }
     } catch (err) {
       console.error(err);
@@ -53,6 +79,7 @@ const Home = () => {
       });
     }
   };
+
   useEffect(() => {
     const fetchAttachments = async () => {
       try {
@@ -61,18 +88,16 @@ const Home = () => {
             `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments`
           );
 
-          // Filter description attachments
           const descAttachments = response.data.filter(
             (attachment) => attachment.is_description_file
           );
 
-          // Filter solution attachments (nuevo)
           const solAttachments = response.data.filter(
             (attachment) => !attachment.is_description_file
           );
 
           setDescriptionAttachments(descAttachments);
-          setSolutionAttachments(solAttachments); // Agrega esta línea
+          setSolutionAttachments(solAttachments);
         }
       } catch (error) {
         console.error("Error fetching attachments:", error);
@@ -83,7 +108,6 @@ const Home = () => {
     fetchAttachments();
   }, [ticketData]);
 
-  // Modifica la función de descarga para manejar ambos tipos de archivos
   const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
@@ -92,7 +116,6 @@ const Home = () => {
         responseType: "blob",
       });
 
-      // Busca el archivo en el arreglo correcto basado en isDescriptionFile
       const attachment = isDescriptionFile
         ? descriptionAttachments.find((att) => att.id === attachmentId)
         : solutionAttachments.find((att) => att.id === attachmentId);
@@ -113,192 +136,228 @@ const Home = () => {
     }
   };
 
-  // Función para determinar el progreso y el color
-  const getProgressProps = () => {
-    if (ticketData) {
-      switch (ticketData.estado) {
-        case "Creado":
-          return { value: 10, color: "danger" };
-        case "En proceso":
-          return { value: 60, color: "warning" };
-        case "Solucionado":
-          return { value: 100, color: "success" };
-        default:
-          return { value: 0, color: "default" };
-      }
+  const getTicketStatusIcon = () => {
+    switch (ticketData?.estado) {
+      case "Creado":
+        return (
+          <div className="bg-orange-100 text-orange-600 p-3 rounded-full">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+        );
+      case "En proceso":
+        return (
+          <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
+            <Clock className="w-6 h-6" />
+          </div>
+        );
+      case "Solucionado":
+        return (
+          <div className="bg-green-100 text-green-600 p-3 rounded-full">
+            <CheckCircle className="w-6 h-6" />
+          </div>
+        );
+      case "Devuelto":
+        return (
+          <div className="bg-purple-100 text-purple-600 p-3 rounded-full">
+            <RefreshCw className="w-6 h-6" />
+          </div>
+        );
+      default:
+        return null;
     }
-    return { value: 0, color: "default" };
+  };
+
+  const getStatusBarWidth = () => {
+    switch (ticketData?.estado) {
+      case "Creado":
+        return "w-1/4";
+      case "En proceso":
+        return "w-1/2";
+      case "Devuelto":
+        return "w-1/4";
+      case "Solucionado":
+        return "w-full";
+      default:
+        return "w-0";
+    }
+  };
+
+  const getStatusBarColor = () => {
+    switch (ticketData?.estado) {
+      case "Creado":
+        return "bg-orange-500";
+      case "En proceso":
+        return "bg-blue-500";
+      case "Devuelto":
+        return "bg-purple-500";
+      case "Solucionado":
+        return "bg-green-500";
+      default:
+        return "bg-gray-300";
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 text-black">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 text-black">
       <ToastContainer />
-      <div className="w-full max-w-4xl p-6 shadow-lg bg-white rounded-md flex flex-col items-center">
-        <div className="mb-6">
+      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl overflow-hidden">
+        {/* Updated Header Section */}
+        <div className="bg-gray-200 p-6 flex items-center justify-between text-black">
+          <div className="flex items-center space-x-4">
+            <div className="text-black">
+              <h1 className="text-3xl font-bold  mb-2">
+                Seguimiento de Ticket
+              </h1>
+              <p className=" text-opacity-80">
+                Consulta el estado de tu solicitud
+              </p>
+            </div>
+          </div>
           <Image
             src="/assets/img/avatar.png"
             alt="Logo"
-            className="h-20 w-25"
             width={100}
             height={100}
           />
         </div>
-        <div className="flex-1 w-full">
-          <h3 className="text-2xl mb-4 text-black text-center">
-            Buscar Ticket
-          </h3>
-          <div className="flex items-center justify-center mb-4 text-black">
-            <input
-              type="text"
-              placeholder="ID del Ticket"
-              value={ticketId}
-              onChange={(e) => setTicketId(e.target.value)}
-              className="border-b-2 border-gray-300 focus:border-blue-500 outline-none py-2 px-4 mr-2 flex-1"
-            />
+
+        <div className="p-6">
+          <div className="flex space-x-4 mb-6">
+            <div className="flex-grow">
+              <input
+                type="text"
+                placeholder="Ingrese ID del Ticket"
+                value={ticketId}
+                onChange={(e) => validateTicketId(e.target.value)}
+                className={`w-full px-4 py-3 border-2 ${
+                  inputError
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-gray-500"
+                } rounded-lg focus:outline-none transition-colors`}
+              />
+              {inputError && (
+                <p className="text-red-500 text-sm mt-1">{inputError}</p>
+              )}
+            </div>
             <button
               onClick={fetchTicket}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600"
+              className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition-colors flex items-center space-x-2"
             >
-              Buscar
+              <Search className="w-5 h-5" />
+              <span>Buscar</span>
             </button>
           </div>
-          {error && <p className="text-red-500 text-center">{error}</p>}
-          {ticketData && (
-            <div className="w-full mt-4 relative flex justify-center">
-              <Progress
-                {...getProgressProps()}
-                className="max-w-md w-full md:w-2/3"
-              />
-              <div className="flex justify-between w-full max-w-md absolute -bottom-6 text-xs">
-                <span className="transform -translate-x-1/2 font-bold">
-                  Creado
-                </span>
-                <span className="transform translate-x-1/2 font-bold">
-                  En proceso
-                </span>
-                <span className="transform translate-x-1/2 font-bold">
-                  Solucionado
-                </span>
-              </div>
-            </div>
-          )}
-          {ticketData && (
-            <div className="mt-12 w-full">
-              <Accordion>
-                <AccordionItem
-                  key="1"
-                  aria-label="Estado del Ticket"
-                  title="Estado del Ticket"
-                >
-                  <p>{ticketData.estado}</p>
-                </AccordionItem>
-                <AccordionItem
-                  key="2"
-                  aria-label="ID del Ticket"
-                  title="ID del Ticket"
-                >
-                  <p>{ticketData.id}</p>
-                </AccordionItem>
-                <AccordionItem
-                  key="3"
-                  aria-label="Especialista Asignado"
-                  title="Especialista Asignado"
-                >
-                  <p>{ticketData.especialista_nombre}</p>
-                </AccordionItem>
-                <AccordionItem
-                  key="4"
-                  aria-label="Tema del Ticket"
-                  title="Tema del Ticket"
-                >
-                  <p>{ticketData.tema}</p>
-                </AccordionItem>
-                <AccordionItem
-                  key="5"
-                  aria-label="Descripción del Caso"
-                  title="Descripción del Caso"
-                >
-                  <p>{ticketData.descripcion_caso}</p>
-                  <div className="space-y-2">
-                    {descriptionAttachments.length > 0 && (
-                      <div className="mt-4">
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">
-                          Archivos adjuntos de la descripción
-                        </h3>
-                        <div className="space-y-2">
-                          {descriptionAttachments.map((attachment) => (
-                            <div
-                              key={attachment.id}
-                              className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
-                            >
-                              <span className="text-sm text-gray-700 truncate">
-                                {attachment.file_name}
-                              </span>
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                color="primary"
-                                onClick={() =>
-                                  downloadAttachment(attachment.id, true)
-                                }
-                              >
-                                <Download size={16} />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </AccordionItem>
-                {ticketData.estado === "Solucionado" && (
-                  <AccordionItem
-                    key="6"
-                    aria-label="Solución del Caso"
-                    title="Solución del Caso"
-                  >
-                    <p>{ticketData.solucion_caso}</p>
 
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">
-                      Archivos adjuntos de la Solucion
-                    </h3>
-                    <div className="space-y-2">
+          {error && (
+            <div className="text-red-500 text-center mb-4">{error}</div>
+          )}
+
+          {ticketData && (
+            <div className="space-y-6">
+              <div className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg">
+                {getTicketStatusIcon()}
+                <div className="flex-grow">
+                  <h2 className="text-lg font-semibold mb-2">
+                    Estado: {ticketData.estado}
+                  </h2>
+                  <div className="w-full bg-gray-200 rounded-full h-3.5">
+                    <div
+                      className={`h-3.5 rounded-full ${getStatusBarColor()} ${getStatusBarWidth()} transition-all duration-300`}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rest of the existing component remains the same */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2 flex items-center">
+                    <FileText className="mr-2 text-gray-600" size={20} />
+                    Detalles del Ticket
+                  </h3>
+                  <p>
+                    <strong>ID:</strong> {ticketData.id}
+                  </p>
+                  <p>
+                    <strong>Especialista:</strong>{" "}
+                    {ticketData.especialista_nombre}
+                  </p>
+                  <p>
+                    <strong>Tema:</strong> {ticketData.tema}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Descripción</h3>
+                  <p className="text-sm">{ticketData.descripcion_caso}</p>
+                </div>
+              </div>
+
+              {descriptionAttachments.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Archivos Adjuntos</h3>
+                  {descriptionAttachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="flex justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm"
+                    >
+                      <span className="truncate flex-grow mr-2">
+                        {attachment.file_name}
+                      </span>
+                      <button
+                        onClick={() => downloadAttachment(attachment.id, true)}
+                        className="text-gray-600 hover:text-gray-900 transition-colors"
+                      >
+                        <Download size={20} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {ticketData.estado === "Solucionado" && (
+                <div className="space-y-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h3 className="font-semibold mb-2">Solución</h3>
+                    <p>{ticketData.solucion_caso}</p>
+                  </div>
+
+                  {solutionAttachments.length > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-semibold mb-2">
+                        Archivos de Solución
+                      </h3>
                       {solutionAttachments.map((attachment) => (
                         <div
                           key={attachment.id}
-                          className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+                          className="flex justify-between items-center bg-white p-3 rounded-lg mb-2 shadow-sm"
                         >
-                          <span className="text-sm text-gray-700 truncate">
+                          <span className="truncate flex-grow mr-2">
                             {attachment.file_name}
                           </span>
-                          <Button
-                            isIconOnly
-                            size="sm"
-                            variant="light"
-                            color="primary"
+                          <button
                             onClick={() =>
                               downloadAttachment(attachment.id, false)
                             }
+                            className="text-gray-600 hover:text-gray-900 transition-colors"
                           >
-                            <Download size={16} />
-                          </Button>
+                            <Download size={20} />
+                          </button>
                         </div>
                       ))}
                     </div>
-                  </AccordionItem>
-                )}
-                {ticketData.estado === "Solucionado" &&
-                  ticketData.fecha_finalizacion && (
-                    <AccordionItem
-                      key="7"
-                      aria-label="Fecha de Finalización"
-                      title="Fecha de Finalización"
-                    >
-                      <p>{ticketData.fecha_finalizacion}</p>
-                    </AccordionItem>
                   )}
-              </Accordion>
+
+                  {ticketData.fecha_finalizacion && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-semibold mb-2">
+                        Fecha de Finalización
+                      </h3>
+                      <p>{ticketData.fecha_finalizacion}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
