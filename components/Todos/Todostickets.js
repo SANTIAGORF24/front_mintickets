@@ -102,7 +102,7 @@ export function Todostickets() {
 
   const renderActions = (ticket) => {
     return (
-      <div className="relative flex items-center gap-2">
+      <div className="relative flex items-center gap-2 ">
         <span
           className="text-lg cursor-pointer active:opacity-50 text-black"
           onClick={() =>
@@ -314,8 +314,12 @@ export function Todostickets() {
               </TableCell>
               <TableCell>{ticket.tercero_nombre}</TableCell>
               <TableCell>{ticket.especialista_nombre}</TableCell>
-              <TableCell>{ticket.descripcion_caso}</TableCell>
-              <TableCell>{ticket.solucion_caso}</TableCell>
+              <TableCell className="whitespace-pre-wrap break-words">
+                {ticket.descripcion_caso}
+              </TableCell>
+              <TableCell className="whitespace-pre-wrap break-words">
+                {ticket.solucion_caso}
+              </TableCell>
               <TableCell>{ticket.tiempo_de_respuesta}</TableCell>
               <TableCell>{ticket.actitud}</TableCell>
               <TableCell>{ticket.respuesta}</TableCell>
