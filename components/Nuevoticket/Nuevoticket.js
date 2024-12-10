@@ -332,7 +332,7 @@ export function Nuevoticket() {
                   <input
                     type="file"
                     multiple
-                    accept=".pdf,.ppt,.pptx,.mp4,.jpg,.jpeg,.png,.gif,.xls,.xlsx"
+                    accept=".pdf,.ppt,.pptx,.mp4,.jpg,.jpeg,.png,.gif,.xls,.xlsx,.docx"
                     onChange={(e) => handleFileUpload(e.target.files)}
                     className="hidden"
                     id="fileInput"

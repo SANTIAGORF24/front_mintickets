@@ -229,6 +229,11 @@ const Home = () => {
                 placeholder="Ingrese ID del Ticket"
                 value={ticketId}
                 onChange={(e) => validateTicketId(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    fetchTicket();
+                  }
+                }}
                 className={`w-full px-4 py-3 border-2 ${
                   inputError
                     ? "border-red-500 focus:border-red-500"
@@ -268,7 +273,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Rest of the existing component remains the same */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-semibold mb-2 flex items-center">

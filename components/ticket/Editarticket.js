@@ -593,17 +593,17 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
 
                       {/* Uploaded Files Preview */}
                       {attachments.length > 0 && (
-                        <div className="mt-4 space-y-2">
+                        <div className="mt-4 space-y-2 text-black">
                           {renderAttachments()}
                         </div>
                       )}
                     </div>
                     {solAttachments.length > 0 && (
-                      <div className="mt-4">
+                      <div className="mt-4 text-black">
                         <h3 className="text-sm font-medium text-gray-700 mb-2">
                           Archivos adjuntos de la descripción
                         </h3>
-                        <div className="space-y-2">
+                        <div className="space-y-2 text-black">
                           {solAttachments.map((attachmentSol) => (
                             <div
                               key={attachmentSol.id}
