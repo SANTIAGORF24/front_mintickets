@@ -207,7 +207,9 @@ export default function Home({ searchParams }) {
             aria-label="Descripción del caso"
             title={<span>Descripción del caso</span>}
           >
-            <p className="font-normal">{ticket.descripcion_caso}</p>
+            <p className="font-normal whitespace-pre-wrap break-words">
+              {ticket.descripcion_caso}
+            </p>
 
             {/* Description Attachments */}
             {descriptionAttachments.length > 0 && (
@@ -244,7 +246,9 @@ export default function Home({ searchParams }) {
             aria-label="Solución"
             title={<span>Solución</span>}
           >
-            <p className="font-normal">{ticket.solucion_caso}</p>
+            <p className="font-normal whitespace-pre-wrap break-words">
+              {ticket.solucion_caso}
+            </p>
 
             {/* Solution Attachments */}
             {solAttachments.length > 0 && (

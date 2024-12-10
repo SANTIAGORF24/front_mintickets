@@ -293,7 +293,9 @@ const Home = () => {
 
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-semibold mb-2">Descripción</h3>
-                  <p className="text-sm">{ticketData.descripcion_caso}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {ticketData.descripcion_caso}
+                  </p>
                 </div>
               </div>
 
@@ -323,7 +325,9 @@ const Home = () => {
                 <div className="space-y-4">
                   <div className="bg-green-50 p-4 rounded-lg">
                     <h3 className="font-semibold mb-2">Solución</h3>
-                    <p>{ticketData.solucion_caso}</p>
+                    <p className="whitespace-pre-wrap break-words">
+                      {ticketData.solucion_caso}
+                    </p>
                   </div>
 
                   {solutionAttachments.length > 0 && (
