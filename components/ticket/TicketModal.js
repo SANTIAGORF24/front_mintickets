@@ -17,7 +17,9 @@ export function TicketModal({ isOpen, onClose, description }) {
           Descripción del Ticket
         </ModalHeader>
         <ModalBody>
-          <p className="text-black">{description}</p>
+          <p className="text-black whitespace-pre-wrap break-words">
+            {description}
+          </p>
         </ModalBody>
         <ModalFooter>
           <Button color="primary" variant="light" onPress={onClose}>

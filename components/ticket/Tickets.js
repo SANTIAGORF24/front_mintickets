@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import {
   Table,
@@ -7,9 +7,13 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
   Input,
   Button,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Chip,
   Pagination,
 } from "@nextui-org/react";
 import { capitalize } from "./Utils";
@@ -17,28 +21,50 @@ import { DeleteIcon, EditIcon, EyeIcon } from "./Iconsactions";
 import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
+import { SearchIcon, ChevronDownIcon, PlusIcon } from "./Icons"; // Assuming you have these icons
 
+// Status color map
 const statusColorMap = {
   Creado: "danger",
   "En proceso": "warning",
   Solucionado: "success",
 };
 
-const columns = [
-  { uid: "tema", name: "Tema" },
-  { uid: "estado", name: "Estado" },
-  { uid: "tercero_nombre", name: "Tercero" },
-  { uid: "especialista_nombre", name: "Especialista" },
-  { uid: "descripcion_caso", name: "Descripción del Caso" },
-  { uid: "actions", name: "Acciones" },
+// Status options based on your existing states
+const statusOptions = [
+  { name: "Creado", uid: "Creado", sortable: true },
+  { name: "En proceso", uid: "En proceso", sortable: true },
+  { name: "Devuelto", uid: "Devuelto", sortable: true },
+  { name: "Solucionado", uid: "Solucionado" },
 ];
+
+// Columns definition
+const columns = [
+  { name: "TEMA", uid: "tema", sortable: true },
+  { name: "ESTADO", uid: "estado", sortable: true },
+  { name: "TERCERO", uid: "tercero_nombre", sortable: true },
+  { name: "ESPECIALISTA", uid: "especialista_nombre" },
+  { name: "DESCRIPCIÓN", uid: "descripcion_caso", sortable: true },
+  { name: "ACCIONES", uid: "actions", sortable: true },
+];
+
+const INITIAL_VISIBLE_COLUMNS = columns.map((column) => column.uid);
+const INITIAL_STATUS_FILTER = new Set(["Creado", "En proceso", "Devuelto"]);
 
 export function Tickets() {
   const [tickets, setTickets] = useState([]);
-  const [filteredTickets, setFilteredTickets] = useState([]);
   const [filterValue, setFilterValue] = useState("");
-  const [page, setPage] = useState(1);
+  const [selectedKeys, setSelectedKeys] = useState(new Set([]));
+  const [visibleColumns, setVisibleColumns] = useState(
+    new Set(INITIAL_VISIBLE_COLUMNS)
+  );
+  const [statusFilter, setStatusFilter] = useState(INITIAL_STATUS_FILTER);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [sortDescriptor, setSortDescriptor] = useState({
+    column: "tema",
+    direction: "ascending",
+  });
+  const [page, setPage] = useState(1);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [userFullName, setUserFullName] = useState("");
@@ -47,8 +73,8 @@ export function Tickets() {
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  // User data retrieval
   useEffect(() => {
-    // Retrieve user data from localStorage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const userData = JSON.parse(storedUser);
@@ -58,6 +84,7 @@ export function Tickets() {
     }
   }, []);
 
+  // Ticket fetching
   useEffect(() => {
     setIsLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets`)
@@ -77,25 +104,105 @@ export function Tickets() {
       });
   }, []);
 
-  useEffect(() => {
-    const filtered = tickets.filter(
+  // Filtering logic
+  const filteredItems = useMemo(() => {
+    let filteredTickets = tickets.filter(
       (ticket) =>
-        ticket.especialista_nombre.toLowerCase() ===
-          userFullName.toLowerCase() &&
-        !ticket.estado.toLowerCase().includes("solucionado") &&
-        (filterValue === "" ||
-          ticket.tema.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.estado.toLowerCase().includes(filterValue.toLowerCase()) ||
-          ticket.tercero_nombre
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          ticket.descripcion_caso
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()))
+        ticket.especialista_nombre.toLowerCase() === userFullName.toLowerCase()
     );
-    setFilteredTickets(filtered);
-  }, [tickets, filterValue, userFullName]);
 
+    if (filterValue) {
+      filteredTickets = filteredTickets.filter((ticket) =>
+        Object.values(ticket).some(
+          (value) =>
+            value &&
+            value.toString().toLowerCase().includes(filterValue.toLowerCase())
+        )
+      );
+    }
+
+    if (
+      statusFilter !== "all" &&
+      Array.from(statusFilter).length !== statusOptions.length
+    ) {
+      filteredTickets = filteredTickets.filter((ticket) =>
+        Array.from(statusFilter).includes(ticket.estado)
+      );
+    }
+
+    return filteredTickets;
+  }, [tickets, filterValue, statusFilter, userFullName]);
+
+  // Pagination calculations
+  const pages = Math.ceil(filteredItems.length / rowsPerPage);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return filteredItems.slice(start, end);
+  }, [page, filteredItems, rowsPerPage]);
+
+  // Sorting logic
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const first = a[sortDescriptor.column];
+      const second = b[sortDescriptor.column];
+      const cmp = first < second ? -1 : first > second ? 1 : 0;
+
+      return sortDescriptor.direction === "descending" ? -cmp : cmp;
+    });
+  }, [sortDescriptor, items]);
+
+  // Render cell logic
+  const renderCell = useCallback((ticket, columnKey) => {
+    const cellValue = ticket[columnKey];
+
+    switch (columnKey) {
+      case "estado":
+        return (
+          <Chip
+            className="capitalize"
+            color={statusColorMap[ticket.estado]}
+            size="sm"
+            variant="flat"
+          >
+            {cellValue}
+          </Chip>
+        );
+      case "descripcion_caso":
+        return cellValue.split(" ").slice(0, 10).join(" ") + "...";
+      case "actions":
+        return (
+          <div className="relative flex justify-end items-center gap-2">
+            <span
+              className="text-lg cursor-pointer active:opacity-50 text-black"
+              onClick={() =>
+                openModalWithDescription(ticket.id, ticket.descripcion_caso)
+              }
+            >
+              <EyeIcon />
+            </span>
+            <span className="text-lg cursor-pointer active:opacity-50 text-blue-600">
+              <Editarticket
+                ticketData={ticket}
+                onTicketUpdate={handleTicketUpdate}
+              />
+            </span>
+            <span
+              className="text-lg cursor-pointer active:opacity-50 trash-icon text-red-500"
+              onClick={() => deleteTicket(ticket.id)}
+            >
+              <DeleteIcon />
+            </span>
+          </div>
+        );
+      default:
+        return cellValue;
+    }
+  }, []);
+
+  // Handlers
   const deleteTicket = (id) => {
     axios
       .delete(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`)
@@ -114,43 +221,6 @@ export function Tickets() {
     setSelectedTicketDescription(description);
   };
 
-  const renderActions = (ticket) => (
-    <div className="relative flex items-center gap-2">
-      <span
-        className="text-lg cursor-pointer active:opacity-50 text-black"
-        onClick={() =>
-          openModalWithDescription(ticket.id, ticket.descripcion_caso)
-        }
-      >
-        <EyeIcon />
-      </span>
-      <span className="text-lg cursor-pointer active:opacity-50 text-blue-600">
-        <Editarticket ticketData={ticket} onTicketUpdate={handleTicketUpdate} />
-      </span>
-      <span
-        className="text-lg cursor-pointer active:opacity-50 trash-icon text-red-500"
-        onClick={() => deleteTicket(ticket.id)}
-      >
-        <DeleteIcon />
-      </span>
-    </div>
-  );
-
-  const handleSearchChange = (value) => {
-    setFilterValue(value);
-    setPage(1);
-  };
-
-  const handleClearSearch = () => {
-    setFilterValue("");
-    setPage(1);
-  };
-
-  const handleRowsPerPageChange = (e) => {
-    setRowsPerPage(Number(e.target.value));
-    setPage(1);
-  };
-
   const handleTicketUpdate = (updatedTicket) => {
     setTickets((prevTickets) =>
       prevTickets.map((ticket) =>
@@ -159,104 +229,234 @@ export function Tickets() {
     );
   };
 
-  if (isLoading) {
-    return <div>Cargando tickets...</div>;
-  }
+  const onRowsPerPageChange = useCallback((e) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
+  }, []);
 
-  return (
-    <div className="w-full">
-      <div>
-        <div className="flex justify-between items-center gap-3 mb-4">
+  const onSearchChange = useCallback((value) => {
+    if (value) {
+      setFilterValue(value);
+      setPage(1);
+    } else {
+      setFilterValue("");
+    }
+  }, []);
+
+  const onClear = useCallback(() => {
+    setFilterValue("");
+    setPage(1);
+  }, []);
+
+  // Top content (search and filters)
+  const topContent = useMemo(() => {
+    return (
+      <div className="flex flex-col ">
+        <div className="flex justify-between gap-3 items-end">
           <Input
-            className="w-[44%]"
-            placeholder="Buscar tickets..."
-            value={filterValue}
-            onValueChange={handleSearchChange}
             isClearable
-            onClear={handleClearSearch}
+            className="w-full sm:max-w-[44%]"
+            placeholder="Buscar tickets..."
+            startContent={<SearchIcon />}
+            value={filterValue}
+            onClear={() => onClear()}
+            onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex text-black">
+                <Button
+                  endContent={
+                    <ChevronDownIcon className="text-small text-black" />
+                  }
+                  variant="flat"
+                >
+                  Estado
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Estado de Tickets"
+                closeOnSelect={false}
+                selectedKeys={statusFilter}
+                selectionMode="multiple"
+                onSelectionChange={setStatusFilter}
+                className="text-black"
+              >
+                {statusOptions.map((status) => (
+                  <DropdownItem key={status.uid} className="capitalize">
+                    {capitalize(status.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button
+                  endContent={<ChevronDownIcon className="text-small" />}
+                  variant="flat"
+                >
+                  Columnas
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Columnas de Tabla"
+                closeOnSelect={false}
+                selectedKeys={visibleColumns}
+                selectionMode="multiple"
+                onSelectionChange={setVisibleColumns}
+                className="text-black"
+              >
+                {columns.map((column) => (
+                  <DropdownItem key={column.uid} className="capitalize">
+                    {capitalize(column.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
             <Button
               color="primary"
-              variant="flat"
+              endContent={<PlusIcon />}
               onClick={() => (window.location.href = "/nuevoticket")}
             >
               Nuevo Ticket
             </Button>
           </div>
         </div>
-        <Table
-          aria-label="Tabla de Tickets"
-          isHeaderSticky
-          selectedKeys={[]}
-          selectionMode="multiple"
-          style={{ color: "black" }}
-        >
-          <TableHeader>
-            {columns.map((column) => (
-              <TableColumn
-                key={column.uid}
-                align={column.uid === "actions" ? "center" : "start"}
-              >
-                {column.name}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody
-            emptyContent={"No se encontraron tickets"}
-            items={filteredTickets.slice(
-              (page - 1) * rowsPerPage,
-              page * rowsPerPage
-            )}
-          >
-            {(ticket) => (
-              <TableRow key={ticket.id}>
-                <TableCell>{ticket.tema}</TableCell>
-                <TableCell>
-                  <Chip
-                    color={statusColorMap[ticket.estado]}
-                    size="sm"
-                    variant="flat"
-                  >
-                    {capitalize(ticket.estado)}
-                  </Chip>
-                </TableCell>
-                <TableCell>{ticket.tercero_nombre}</TableCell>
-                <TableCell>{ticket.especialista_nombre}</TableCell>
-                <TableCell>
-                  {ticket.descripcion_caso.split(" ").slice(0, 10).join(" ")}
-                </TableCell>
-                <TableCell>{renderActions(ticket)}</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <div className="flex justify-between items-center mt-4 text-black">
-          <div>
-            <label>
-              Filas por página:
-              <select value={rowsPerPage} onChange={handleRowsPerPageChange}>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-              </select>
-            </label>
-          </div>
-          <Pagination
-            total={Math.ceil(filteredTickets.length / rowsPerPage)}
-            current={page}
-            onChange={setPage}
-          />
+        <div className="flex justify-between items-center">
+          <span className="text-default-400 text-small">
+            Total {filteredItems.length} tickets
+          </span>
+          <label className="flex items-center text-default-400 text-small">
+            Filas por página:
+            <select
+              className="bg-transparent outline-none text-default-400 text-small"
+              onChange={onRowsPerPageChange}
+              value={rowsPerPage}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </label>
         </div>
       </div>
+    );
+  }, [
+    filterValue,
+    statusFilter,
+    visibleColumns,
+    onRowsPerPageChange,
+    filteredItems.length,
+    onSearchChange,
+  ]);
+
+  // Bottom content (pagination)
+  const bottomContent = useMemo(() => {
+    return (
+      <div className="py-2 px-2 flex justify-between items-center">
+        <span className="w-full text-small text-default-400">
+          {selectedKeys === "all"
+            ? "Todos los elementos seleccionados"
+            : `${selectedKeys.size} de ${filteredItems.length} seleccionados`}
+        </span>
+        <Pagination
+          isCompact
+          showControls
+          showShadow
+          color="primary"
+          page={page}
+          total={pages}
+          onChange={setPage}
+        />
+        <div className="hidden sm:flex w-[30%] justify-end gap-2">
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={() => setPage(page - 1)}
+          >
+            Anterior
+          </Button>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={() => setPage(page + 1)}
+          >
+            Siguiente
+          </Button>
+        </div>
+      </div>
+    );
+  }, [selectedKeys, filteredItems.length, page, pages]);
+
+  // Header columns based on visible columns
+  const headerColumns = useMemo(() => {
+    if (visibleColumns === "all") return columns;
+
+    return columns.filter((column) =>
+      Array.from(visibleColumns).includes(column.uid)
+    );
+  }, [visibleColumns]);
+
+  if (isLoading) {
+    return <div>Cargando tickets...</div>;
+  }
+
+  return (
+    <div className="flex flex-col gap-4 w-full text-black">
+      {" "}
+      {/* Added flex column and gap */}
+      <Table
+        isHeaderSticky
+        aria-label="Tabla de Tickets"
+        bottomContent={bottomContent}
+        bottomContentPlacement="outside"
+        selectedKeys={selectedKeys}
+        selectionMode="multiple"
+        sortDescriptor={sortDescriptor}
+        topContent={topContent}
+        topContentPlacement="outside"
+        onSelectionChange={setSelectedKeys}
+        onSortChange={setSortDescriptor}
+        className="w-full"
+      >
+        <TableHeader columns={headerColumns}>
+          {(column) => (
+            <TableColumn
+              key={column.uid}
+              align={column.uid === "actions" ? "center" : "start"}
+              allowsSorting={column.sortable}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody
+          emptyContent={"No se encontraron tickets"}
+          items={sortedItems}
+        >
+          {(item) => (
+            <TableRow key={item.id}>
+              {(columnKey) => (
+                <TableCell>{renderCell(item, columnKey)}</TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
       <TicketModal
         isOpen={selectedTicketId !== ""}
         onClose={() => setSelectedTicketId("")}
         description={selectedTicketDescription}
       />
-      {filteredTickets.length > 0 && (
-        <div className="mt-8">
-          <TicketCharts tickets={filteredTickets} />
+      {filteredItems.length > 0 && (
+        <div className="w-full">
+          {" "}
+          {/* Added full width */}
+          <TicketCharts tickets={filteredItems} />
         </div>
       )}
     </div>
