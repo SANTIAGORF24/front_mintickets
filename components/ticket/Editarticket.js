@@ -8,6 +8,12 @@ import {
   ModalBody,
   ModalFooter,
   CircularProgress,
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  DrawerFooter,
+  useDisclosure,
 } from "@nextui-org/react";
 import Autocomplete from "./Autocomplete";
 import { EditIcon } from "./Iconsactions";
@@ -401,13 +407,20 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         </span>
       </Button>
 
-      <Modal isOpen={isOpen} onClose={closeModal} size="5xl" backdrop="blur">
-        <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 text-blue-600">
+      <Drawer
+        isOpen={isOpen}
+        onClose={closeModal}
+        size="5xl" // Tamaño para el Drawer
+        placement="right" // Colocarlo a la derecha
+        isDismissable={true}
+        isKeyboardDismissDisabled={false}
+        backdrop="blur"
+      >
+        <DrawerContent>
+          <DrawerHeader className="flex flex-col gap-1 text-blue-600">
             Editar ticket
-          </ModalHeader>
-          <ModalBody>
-            <ToastContainer /> {/* ToastContainer dentro del ModalBody */}
+          </DrawerHeader>
+          <DrawerBody>
             <div className="flex flex-col space-y-7">
               <div className="flex">
                 <div className="w-1/2 pr-4">
@@ -628,13 +641,12 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                         </div>
                       </div>
                     )}
-                    {/* File Upload Section */}
                   </div>
                 </div>
               </div>
             </div>
-          </ModalBody>
-          <ModalFooter>
+          </DrawerBody>
+          <DrawerFooter>
             <Button color="danger" variant="flat" onPress={closeModal}>
               Cerrar
             </Button>
@@ -662,9 +674,9 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
                 "Guardar"
               )}
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }
