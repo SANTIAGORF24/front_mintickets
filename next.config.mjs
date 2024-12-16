@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export",
-  distDir: "build",
-
   // Configuraciones adicionales para imágenes
   images: {
     unoptimized: true, // Importante para exportación estática
