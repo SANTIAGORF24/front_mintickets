@@ -1,5 +1,6 @@
-// pages/home.js
+"use client";
 import React, { useEffect, useState } from "react";
+
 import Encuesta from "../../components/Encuesta/Encuesta";
 
 export default function Home() {
