@@ -21,6 +21,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Search, Mail, User, Download } from "react-feather";
 import { FileUp, Paperclip } from "lucide-react";
+import Image from "next/image";
 
 import TerceroAutocomplete from "./TerceroAutocomplete";
 import SpecialistAutocomplete from "./SpecialistAutocomplete";
@@ -385,17 +386,17 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   // Helper function to get file icon based on file type
   const getFileIcon = (fileType) => {
     if (fileType.startsWith("image/"))
-      return <img src="/image-icon.svg" className="w-6 h-6" />;
+      return <Image src="/image-icon.svg" className="w-6 h-6" />;
     if (fileType === "application/pdf")
-      return <img src="/pdf-icon.svg" className="w-6 h-6" />;
+      return <Image src="/pdf-icon.svg" className="w-6 h-6" />;
     if (
       fileType === "application/vnd.ms-powerpoint" ||
       fileType ===
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
-      return <img src="/ppt-icon.svg" className="w-6 h-6" />;
+      return <Image src="/ppt-icon.svg" className="w-6 h-6" />;
     if (fileType.startsWith("video/"))
-      return <img src="/video-icon.svg" className="w-6 h-6" />;
+      return <Image src="/video-icon.svg" className="w-6 h-6" />;
     return <Paperclip className="w-6 h-6 text-gray-500" />;
   };
 
