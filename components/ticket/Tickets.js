@@ -350,6 +350,8 @@ export function Tickets() {
     onRowsPerPageChange,
     filteredItems.length,
     onSearchChange,
+    onClear, // <-- Añadido
+    rowsPerPage, // <-- Añadido
   ]);
 
   // Bottom content (pagination)

@@ -188,17 +188,21 @@ export function Nuevoticket() {
   // Helper function to get file icon based on file type
   const getFileIcon = (fileType) => {
     if (fileType.startsWith("image/"))
-      return <Image src="/image-icon.svg" className="w-6 h-6" />;
+      return (
+        <Image src="/image-icon.svg" alt="Image icon" className="w-6 h-6" />
+      );
     if (fileType === "application/pdf")
-      return <Image src="/pdf-icon.svg" className="w-6 h-6" />;
+      return <Image src="/pdf-icon.svg" className="w-6 h-6" alt="Image icon" />;
     if (
       fileType === "application/vnd.ms-powerpoint" ||
       fileType ===
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
-      return <Image src="/ppt-icon.svg" className="w-6 h-6" />;
+      return <Image src="/ppt-icon.svg" className="w-6 h-6" alt="Image icon" />;
     if (fileType.startsWith("video/"))
-      return <Image src="/video-icon.svg" className="w-6 h-6" />;
+      return (
+        <Image src="/video-icon.svg" className="w-6 h-6" alt="Image icon" />
+      );
     return <Paperclip className="w-6 h-6 text-gray-500" />;
   };
 
