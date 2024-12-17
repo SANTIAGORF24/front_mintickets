@@ -85,23 +85,22 @@ export function Tickets() {
   }, []);
 
   // Ticket fetching
-  useEffect(() => {
-    setIsLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setTickets(data);
+  UseEffect(() => {
+    const fetchTickets = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/tickets`
+        );
+        setTickets(response.data);
         setIsLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching tickets:", error);
         setIsLoading(false);
-      });
+      }
+    };
+
+    fetchTickets();
   }, []);
 
   // Filtering logic
