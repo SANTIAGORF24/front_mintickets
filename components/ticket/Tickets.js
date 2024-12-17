@@ -86,7 +86,7 @@ export function Tickets() {
   }, []);
 
   // Ticket fetching
-  UseEffect(() => {
+  useEffect(() => {
     const fetchTickets = async () => {
       setIsLoading(true);
       try {
