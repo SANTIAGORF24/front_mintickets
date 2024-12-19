@@ -5,7 +5,7 @@ export function Estadoticket() {
   const [statuses, setStatuses] = useState([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/status`) // Ruta para obtener los estados desde tu aplicación Flask
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/status/`) // Ruta para obtener los estados desde tu aplicación Flask
       .then((response) => response.json())
       .then((data) => {
         setStatuses(data.status);

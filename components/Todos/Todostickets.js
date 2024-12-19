@@ -55,7 +55,7 @@ export function Todostickets() {
 
   useEffect(() => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/tickets`)
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/tickets/`)
       .then((response) => {
         const cleanedTickets = response.data.map((ticket) => ({
           ...ticket,
@@ -75,7 +75,7 @@ export function Todostickets() {
 
   const deleteTicket = (id) => {
     axios
-      .delete(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`)
+      .delete(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/`)
       .then((response) => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)

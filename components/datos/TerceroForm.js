@@ -38,7 +38,9 @@ export function TerceroForm() {
 
   const fetchTerceros = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/tercerosda");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/`
+      );
       if (response.ok) {
         const data = await response.json();
         setTerceros(data);
@@ -62,13 +64,16 @@ export function TerceroForm() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:5000/tercerosda", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTercero),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newTercero),
+        }
+      );
       if (response.ok) {
         setNewTercero({ username: "", fullName: "", email: "" });
         fetchTerceros();
@@ -83,7 +88,7 @@ export function TerceroForm() {
   const handleDeleteTercero = async (username) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/tercerosda/${username}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/${username}/`,
         {
           method: "DELETE",
         }
@@ -115,7 +120,7 @@ export function TerceroForm() {
   const handleUpdateTercero = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/tercerosda/${updatedTercero.username}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/${updatedTercero.username}/`,
         {
           method: "PUT",
           headers: {

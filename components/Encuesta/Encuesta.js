@@ -40,13 +40,13 @@ export default function Encuesta({ id }) {
       try {
         // Fetch ticket details
         const ticketResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/`
         );
         setTicket(ticketResponse.data);
 
         // Fetch attachments
         const attachmentsResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/attachments`
+          `${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/attachments/`
         );
 
         // Separate description and solution attachments
@@ -79,7 +79,7 @@ export default function Encuesta({ id }) {
   const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
-        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}/`,
         method: "GET",
         responseType: "blob",
       });
@@ -123,7 +123,7 @@ export default function Encuesta({ id }) {
     // Validate all fields are filled
     if (question1 && question2 && question3 && solutionApproval) {
       axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/rate`, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/rate/`, {
           tiempo_de_respuesta: ratings.question1,
           actitud: ratings.question2,
           respuesta: ratings.question3,

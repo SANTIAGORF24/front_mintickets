@@ -25,7 +25,7 @@ export function Loginpys() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/authpazysalvo/login`,
+        `${process.env.NEXT_PUBLIC_API_URL}/authpazysalvo/login/`,
         {
           method: "POST",
           headers: {

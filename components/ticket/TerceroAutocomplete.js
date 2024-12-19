@@ -19,7 +19,7 @@ const TerceroAutocomplete = ({ onSelect, initialValue = null }) => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda`
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/`
         );
         const tercerosData = response.data.terceros || response.data;
 

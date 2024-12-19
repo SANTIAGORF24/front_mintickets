@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/tickets`)
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/tickets/`)
       .then((response) => {
         setTicketsData(response.data);
         setLoading(false);

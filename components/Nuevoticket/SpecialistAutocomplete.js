@@ -17,7 +17,7 @@ const SpecialistAutocomplete = ({ onSelect }) => {
     const fetchSpecialists = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/especialistas`
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/especialistas/`
         );
         setSpecialists(response.data);
       } catch (error) {

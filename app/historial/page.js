@@ -44,7 +44,7 @@ const Home = () => {
 
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketId}`
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketId}/`
       );
       setTicketData(response.data);
       setError("");
@@ -85,7 +85,7 @@ const Home = () => {
       try {
         if (ticketData && ticketData.id) {
           const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments`
+            `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments/`
           );
 
           const descAttachments = response.data.filter(
@@ -111,7 +111,7 @@ const Home = () => {
   const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
-        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}/`,
         method: "GET",
         responseType: "blob",
       });

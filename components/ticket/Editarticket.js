@@ -64,17 +64,17 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
     const fetchData = async () => {
       try {
         const topicsResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/topics`
+          `${process.env.NEXT_PUBLIC_API_URL}/topics/`
         );
         setTopics(topicsResponse.data.topics);
 
         const statusesResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/status`
+          `${process.env.NEXT_PUBLIC_API_URL}/status/`
         );
         setStatuses(statusesResponse.data.status);
 
         const tercerosResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda`
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/`
         );
         setTerceros(tercerosResponse.data.terceros);
       } catch (error) {
@@ -151,7 +151,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketDataToUpdate.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketDataToUpdate.id}/`,
         ticketDataToUpdate
       );
 
@@ -205,7 +205,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
       };
 
       await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketDataToUpdate.id}/finalize`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketDataToUpdate.id}/finalize/`,
         ticketDataToUpdate
       );
 
@@ -247,7 +247,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
         if (ticketData && ticketData.id) {
           // Cambia esta línea a la ruta general de attachments
           const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments`
+            `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketData.id}/attachments/`
           );
 
           // Filtrar archivos adjuntos de descripción
@@ -279,7 +279,7 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   const downloadAttachment = async (attachmentId, isDescriptionFile) => {
     try {
       const response = await axios({
-        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}`,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}/`,
         method: "GET",
         responseType: "blob",
       });
@@ -387,19 +387,47 @@ export function Editarticket({ ticketData, onTicketUpdate }) {
   const getFileIcon = (fileType) => {
     if (fileType.startsWith("image/"))
       return (
-        <Image src="/image-icon.svg" className="w-6 h-6" alt="Image icon" />
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/image.png"
+          alt="Image icon"
+          className="w-6 h-6"
+          width="100"
+          height="100"
+        />
       );
     if (fileType === "application/pdf")
-      return <Image src="/pdf-icon.svg" className="w-6 h-6" alt="Image icon" />;
+      return (
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/pdf.png"
+          className="w-6 h-6"
+          alt="PDF icon"
+          width="100"
+          height="100"
+        />
+      );
     if (
       fileType === "application/vnd.ms-powerpoint" ||
       fileType ===
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
-      return <Image src="/ppt-icon.svg" className="w-6 h-6" alt="Image icon" />;
+      return (
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/ppt.png"
+          className="w-6 h-6"
+          alt="PPT icon"
+          width="100"
+          height="100"
+        />
+      );
     if (fileType.startsWith("video/"))
       return (
-        <Image src="/video-icon.svg" className="w-6 h-6" alt="Image icon" />
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/video.png"
+          className="w-6 h-6"
+          alt="Video icon"
+          width="100"
+          height="100"
+        />
       );
     return <Paperclip className="w-6 h-6 text-gray-500" />;
   };

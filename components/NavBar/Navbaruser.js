@@ -51,7 +51,6 @@ export function Navbaruser() {
             className="w-50"
             width={60}
             height={60}
-            style={{ width: "auto", height: "auto" }}
             alt="logo"
           />
         </div>

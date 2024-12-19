@@ -91,7 +91,7 @@ export function Tickets() {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tickets`
+          `${process.env.NEXT_PUBLIC_API_URL}/tickets/`
         );
         setTickets(response.data);
         setIsLoading(false);
@@ -205,7 +205,7 @@ export function Tickets() {
   // Handlers
   const deleteTicket = (id) => {
     axios
-      .delete(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`)
+      .delete(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/`)
       .then(() => {
         setTickets((prevTickets) =>
           prevTickets.filter((ticket) => ticket.id !== id)

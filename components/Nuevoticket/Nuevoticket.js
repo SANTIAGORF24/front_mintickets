@@ -32,12 +32,12 @@ export function Nuevoticket() {
     const fetchData = async () => {
       try {
         const topicsResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/topics`
+          `${process.env.NEXT_PUBLIC_API_URL}/topics/`
         );
         setTopics(topicsResponse.data.topics);
 
         const usuariosResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda`
+          `${process.env.NEXT_PUBLIC_API_URL}/tercerosda/`
         );
 
         if (!usuariosResponse.ok) {
@@ -145,7 +145,7 @@ export function Nuevoticket() {
       };
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/tickets/register`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/register/`,
         ticketData
       );
 
@@ -189,19 +189,47 @@ export function Nuevoticket() {
   const getFileIcon = (fileType) => {
     if (fileType.startsWith("image/"))
       return (
-        <Image src="/image-icon.svg" alt="Image icon" className="w-6 h-6" />
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/image.png"
+          alt="Image icon"
+          className="w-6 h-6"
+          width="100"
+          height="100"
+        />
       );
     if (fileType === "application/pdf")
-      return <Image src="/pdf-icon.svg" className="w-6 h-6" alt="Image icon" />;
+      return (
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/pdf.png"
+          className="w-6 h-6"
+          alt="PDF icon"
+          width="100"
+          height="100"
+        />
+      );
     if (
       fileType === "application/vnd.ms-powerpoint" ||
       fileType ===
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
-      return <Image src="/ppt-icon.svg" className="w-6 h-6" alt="Image icon" />;
+      return (
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/ppt.png"
+          className="w-6 h-6"
+          alt="PPT icon"
+          width="100"
+          height="100"
+        />
+      );
     if (fileType.startsWith("video/"))
       return (
-        <Image src="/video-icon.svg" className="w-6 h-6" alt="Image icon" />
+        <Image
+          src="https://img.icons8.com/ios-filled/50/000000/video.png"
+          className="w-6 h-6"
+          alt="Video icon"
+          width="100"
+          height="100"
+        />
       );
     return <Paperclip className="w-6 h-6 text-gray-500" />;
   };
