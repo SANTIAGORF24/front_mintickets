@@ -55,7 +55,7 @@ const TerceroAutocomplete = ({ onSelect, initialValue = null }) => {
     };
 
     fetchTerceros();
-  }, [initialValue]);
+  }, []); // Remove initialValue from dependency array
 
   useEffect(() => {
     if (searchTerm && !selectedTercero) {

@@ -244,8 +244,7 @@ export function Todostickets() {
 
   const formatDate = (date) => {
     if (!date) return "N/A";
-    const dateObj = new Date(date);
-    return dateObj.toLocaleDateString("es-ES", {
+    return date.toLocaleDateString("es-ES", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
