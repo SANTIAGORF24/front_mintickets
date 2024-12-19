@@ -79,7 +79,7 @@ export function Estados() {
   const handleDeleteStatu = async (statuId) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/status/${statuId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/status/${statuId}/`,
         {
           method: "DELETE",
         }
@@ -102,7 +102,7 @@ export function Estados() {
   const handleUpdateStatu = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/status/${editingStatuId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/status/${editingStatuId}/`,
         {
           method: "PUT",
           headers: {

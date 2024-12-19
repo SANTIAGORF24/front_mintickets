@@ -79,7 +79,7 @@ export function Temas() {
   const handleDeleteTopic = async (topicId) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/topics/${topicId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/topics/${topicId}/`,
         {
           method: "DELETE",
         }
@@ -102,7 +102,7 @@ export function Temas() {
   const handleUpdateTopic = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/topics/${editingTopicId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/topics/${editingTopicId}/`,
         {
           method: "PUT",
           headers: {
