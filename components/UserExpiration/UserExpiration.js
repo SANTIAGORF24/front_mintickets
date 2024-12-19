@@ -18,8 +18,9 @@ import {
   DownloadIcon,
 } from "lucide-react";
 import jsPDF from "jspdf";
-// Importar la imagen local
-import headerImage from "../../public/assets/img/fondo.jpg";
+
+const headerImageUrl =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Logo_Ministerio_del_Deporte_%282022-2026%29.png/250px-Logo_Ministerio_del_Deporte_%282022-2026%29.png";
 
 export function UserExpiration() {
   const [user, setUser] = useState(null);
@@ -66,25 +67,30 @@ export function UserExpiration() {
     doc.setLineWidth(0.5);
     doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
 
-    // Añadir header desde imagen local
+    // Añadir header desde imagen URL pública
     try {
+      const response = await fetch(headerImageUrl);
+      const blob = await response.blob();
       const base64Image = await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = function () {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/jpeg"));
-        };
-        img.onerror = reject;
-        img.src = headerImage;
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
       });
 
+      // Ajustar el tamaño de la imagen
+      const imgWidth = 20; // Ancho de la imagen en mm
+      const imgHeight = 15; // Alto de la imagen en mm
+
       // Añadir la imagen al PDF
-      doc.addImage(base64Image, "JPEG", pageWidth / 2 - 25, 25, 50, 20);
+      doc.addImage(
+        base64Image,
+        "JPEG",
+        pageWidth / 2 - imgWidth / 2,
+        25,
+        imgWidth,
+        imgHeight
+      );
     } catch (error) {
       console.error("Error adding header image:", error);
       // Fallback text if image fails
