@@ -23,6 +23,7 @@ import { TicketModal } from "./TicketModal";
 import { Editarticket } from "./Editarticket";
 import { TicketCharts } from "./TicketCharts";
 import { SearchIcon, ChevronDownIcon, PlusIcon } from "./Icons"; // Assuming you have these icons
+import { Download } from "react-feather"; // Asegúrate de tener importados los íconos necesarios
 
 // Status color map
 const statusColorMap = {
@@ -73,6 +74,7 @@ export function Tickets() {
     useState("");
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [descriptionAttachments, setDescriptionAttachments] = useState([]);
 
   // User data retrieval
   useEffect(() => {
@@ -86,21 +88,21 @@ export function Tickets() {
   }, []);
 
   // Ticket fetching
-  useEffect(() => {
-    const fetchTickets = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tickets/`
-        );
-        setTickets(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching tickets:", error);
-        setIsLoading(false);
-      }
-    };
+  const fetchTickets = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/`
+      );
+      setTickets(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTickets();
   }, []);
 
@@ -216,9 +218,49 @@ export function Tickets() {
       });
   };
 
-  const openModalWithDescription = (id, description) => {
+  const openModalWithDescription = async (id, description) => {
     setSelectedTicketId(id);
     setSelectedTicketDescription(description);
+    await fetchAttachments(id);
+  };
+
+  const fetchAttachments = async (ticketId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketId}/attachments/`
+      );
+      const descAttachments = response.data.filter(
+        (attachment) => attachment.is_description_file === true
+      );
+      setDescriptionAttachments(descAttachments);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+    }
+  };
+
+  const downloadAttachment = async (attachmentId) => {
+    try {
+      const response = await axios({
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tickets/attachment/${attachmentId}/`,
+        method: "GET",
+        responseType: "blob",
+      });
+      const attachment = descriptionAttachments.find(
+        (att) => att.id === attachmentId
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        attachment ? attachment.file_name : "download"
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading attachment:", error);
+    }
   };
 
   const handleTicketUpdate = (updatedTicket) => {
@@ -248,6 +290,32 @@ export function Tickets() {
     setPage(1);
   }, []);
 
+  const changeStatusToInProcess = async () => {
+    const updatedTickets = tickets.map((ticket) => {
+      if (selectedKeys.has(ticket.id)) {
+        return { ...ticket, estado: "En proceso" };
+      }
+      return ticket;
+    });
+
+    setTickets(updatedTickets);
+
+    await Promise.all(
+      Array.from(selectedKeys).map((id) =>
+        axios
+          .patch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/`, {
+            estado: "En proceso",
+          })
+          .catch((error) => {
+            console.error("Error updating ticket status:", error);
+          })
+      )
+    );
+
+    setSelectedKeys(new Set());
+    fetchTickets(); // Recargar los tickets después de actualizar el estado
+  };
+
   // Top content (search and filters)
   const topContent = useMemo(() => {
     return (
@@ -263,6 +331,11 @@ export function Tickets() {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
+            {selectedKeys.size > 0 && (
+              <Button color="primary" onClick={changeStatusToInProcess}>
+                Cambiar a estado En proceso
+              </Button>
+            )}
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex text-black">
                 <Button
@@ -352,6 +425,7 @@ export function Tickets() {
     onSearchChange,
     onClear, // <-- Añadido
     rowsPerPage, // <-- Añadido
+    selectedKeys, // <-- Añadido
   ]);
 
   // Bottom content (pagination)
@@ -453,6 +527,8 @@ export function Tickets() {
         isOpen={selectedTicketId !== ""}
         onClose={() => setSelectedTicketId("")}
         description={selectedTicketDescription}
+        descriptionAttachments={descriptionAttachments}
+        downloadAttachment={downloadAttachment}
       />
       {filteredItems.length > 0 && (
         <div className="w-full">

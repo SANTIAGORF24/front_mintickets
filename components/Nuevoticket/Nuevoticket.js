@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, CircularProgress } from "@nextui-org/react";
-import { User, Mail, Search, FileUp, Paperclip } from "lucide-react";
+import {
+  User,
+  Mail,
+  Search,
+  FileUp,
+  Paperclip,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TerceroAutocomplete from "./TerceroAutocomplete";
@@ -27,6 +35,14 @@ export function Nuevoticket() {
   const [attachments, setAttachments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [visiblePreviews, setVisiblePreviews] = useState({});
+
+  const togglePreviewVisibility = (index) => {
+    setVisiblePreviews((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,28 +179,6 @@ export function Nuevoticket() {
     }
   };
 
-  // Render method for attachments
-  const renderAttachments = () => {
-    return attachments.map((attachment, index) => {
-      const fileIcon = getFileIcon(attachment.fileType);
-      return (
-        <div
-          key={index}
-          className="flex items-center bg-gray-100 p-2 rounded-lg mb-2"
-        >
-          {fileIcon}
-          <span className="ml-2 flex-grow truncate">{attachment.fileName}</span>
-          <button
-            onClick={() => removeAttachment(index)}
-            className="text-red-500 hover:text-red-700"
-          >
-            ✕
-          </button>
-        </div>
-      );
-    });
-  };
-
   // Helper function to get file icon based on file type
   const getFileIcon = (fileType) => {
     if (fileType.startsWith("image/"))
@@ -232,6 +226,70 @@ export function Nuevoticket() {
         />
       );
     return <Paperclip className="w-6 h-6 text-gray-500" />;
+  };
+
+  // Helper function to render file preview based on file type
+  const renderFilePreview = (attachment, isVisible) => {
+    if (!isVisible) return null;
+    if (attachment.fileType.startsWith("image/")) {
+      return (
+        <Image
+          src={attachment.base64Content}
+          alt={attachment.fileName}
+          className="w-full h-auto mt-2"
+          width="100"
+          height="100"
+        />
+      );
+    }
+    if (attachment.fileType === "application/pdf") {
+      return (
+        <iframe
+          src={attachment.base64Content}
+          className="w-full h-64 mt-2"
+          title={attachment.fileName}
+        ></iframe>
+      );
+    }
+    return null;
+  };
+
+  // Render method for attachments
+  const renderAttachments = () => {
+    return attachments.map((attachment, index) => {
+      const fileIcon = getFileIcon(attachment.fileType);
+      const isVisible = visiblePreviews[index];
+      return (
+        <div
+          key={index}
+          className="flex flex-col items-start bg-gray-100 p-2 rounded-lg mb-2"
+        >
+          <div className="flex items-center w-full">
+            {fileIcon}
+            <span className="ml-2 flex-grow truncate">
+              {attachment.fileName}
+            </span>
+            <button
+              onClick={() => removeAttachment(index)}
+              className="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
+            <button
+              onClick={() => togglePreviewVisibility(index)}
+              className="ml-2 text-blue-500 hover:text-blue-700"
+            >
+              {isVisible ? (
+                <EyeOff className="w-6 h-6" />
+              ) : (
+                <Eye className="w-6 h-6" />
+              )}
+            </button>
+          </div>
+          {renderFilePreview(attachment, isVisible)}
+        </div>
+      );
+    });
   };
 
   return (

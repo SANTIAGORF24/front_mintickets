@@ -220,13 +220,11 @@ const Home = () => {
       <ToastContainer />
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl overflow-hidden">
         {/* Updated Header Section */}
-        <div className="bg-gray-200 p-6 flex items-center justify-between text-black">
+        <div className="bg-gray-200 p-6 flex flex-col md:flex-row items-center justify-between text-black">
           <div className="flex items-center space-x-4">
             <div className="text-black">
-              <h1 className="text-3xl font-bold  mb-2">
-                Seguimiento de Ticket
-              </h1>
-              <p className=" text-opacity-80">
+              <h1 className="text-3xl font-bold mb-2">Seguimiento de Ticket</h1>
+              <p className="text-opacity-80">
                 Consulta el estado de tu solicitud
               </p>
             </div>
@@ -236,11 +234,12 @@ const Home = () => {
             alt="Logo"
             width={100}
             height={100}
+            className="mt-4 md:mt-0"
           />
         </div>
 
         <div className="p-6">
-          <div className="flex space-x-4 mb-6">
+          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-6">
             <div className="flex-grow">
               <input
                 type="text"
