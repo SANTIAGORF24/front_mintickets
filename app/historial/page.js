@@ -16,6 +16,7 @@ import {
 
 const Home = () => {
   const [ticketId, setTicketId] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [ticketData, setTicketData] = useState(null);
   const [error, setError] = useState("");
   const [descriptionAttachments, setDescriptionAttachments] = useState([]);
@@ -35,17 +36,34 @@ const Home = () => {
     }
   };
 
+  const validateVerificationCode = (value) => {
+    // Only allow numbers
+    const numericValue = value.replace(/\D/g, "");
+    setVerificationCode(numericValue);
+
+    // Check if input is empty
+    if (numericValue.trim() === "") {
+      setInputError("El código de verificación es obligatorio");
+    } else {
+      setInputError("");
+    }
+  };
+
   const fetchTicket = async () => {
     // Validate before fetching
-    if (ticketId.trim() === "") {
-      setInputError("El ID del ticket es obligatorio");
+    if (ticketId.trim() === "" || verificationCode.trim() === "") {
+      setInputError(
+        "El ID del ticket y el código de verificación son obligatorios"
+      );
       return;
     }
 
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketId}/`
+        `${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticketId}/`,
+        { params: { codigo_seguridad: verificationCode } }
       );
+
       setTicketData(response.data);
       setError("");
 
@@ -71,9 +89,9 @@ const Home = () => {
       }
     } catch (err) {
       console.error(err);
-      setError("Ticket no encontrado");
+      setError("Datos incorrectos");
       setTicketData(null);
-      toast.error("Ticket no encontrado", {
+      toast.error("Datos incorrectos", {
         position: "top-right",
         autoClose: 5000,
       });
@@ -229,6 +247,27 @@ const Home = () => {
                 placeholder="Ingrese ID del Ticket"
                 value={ticketId}
                 onChange={(e) => validateTicketId(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    fetchTicket();
+                  }
+                }}
+                className={`w-full px-4 py-3 border-2 ${
+                  inputError
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-gray-500"
+                } rounded-lg focus:outline-none transition-colors`}
+              />
+              {inputError && (
+                <p className="text-red-500 text-sm mt-1">{inputError}</p>
+              )}
+            </div>
+            <div className="flex-grow">
+              <input
+                type="text"
+                placeholder="Ingrese Código de Verificación"
+                value={verificationCode}
+                onChange={(e) => validateVerificationCode(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     fetchTicket();
