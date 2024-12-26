@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { parseISO } from "date-fns"; // Añadimos parseISO para manejar fechas ISO
 
 // Keeping the original TerceroAutocomplete component
 const TerceroAutocomplete = ({ onSelect }) => {
@@ -217,25 +218,76 @@ const ADUserEditor = ({ onSelect }) => {
   };
 
   const handleDateChange = (date) => {
+    if (!date) {
+      setEditableUser((prev) => ({
+        ...prev,
+        accountExpires: "Nunca expira",
+      }));
+      return;
+    }
+
+    // Formateamos la fecha directamente en formato YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
     setEditableUser((prev) => ({
       ...prev,
-      accountExpires: date ? format(date, "yyyy-MM-dd") : "Nunca expira",
+      accountExpires: `${year}-${month}-${day}`,
     }));
   };
 
   const formatAccountExpires = (date) => {
-    if (!date || date === "0") {
+    if (!date || date === "0" || date === "Nunca expira") {
       return "Nunca expira";
     }
-    return format(new Date(date), "yyyy-MM-dd", { locale: es });
+
+    try {
+      const dateObj = typeof date === "string" ? parseISO(date) : date;
+      return format(dateObj, "yyyy-MM-dd", { locale: es });
+    } catch (e) {
+      return date; // Si hay error en el parseo, retornamos la fecha original
+    }
   };
 
   const handleUpdate = async () => {
     try {
       const updatedUser = { ...editableUser };
-      if (updatedUser.accountExpires === "Nunca expira") {
+
+      // Manejo mejorado de la fecha
+      if (
+        updatedUser.accountExpires &&
+        updatedUser.accountExpires !== "Nunca expira"
+      ) {
+        let dateToFormat;
+
+        // Si es una fecha string, la parseamos primero
+        if (typeof updatedUser.accountExpires === "string") {
+          try {
+            // Intentamos parsear la fecha ISO
+            dateToFormat = parseISO(updatedUser.accountExpires);
+          } catch (e) {
+            // Si falla, asumimos que ya es una fecha válida
+            dateToFormat = new Date(updatedUser.accountExpires);
+          }
+        } else {
+          dateToFormat = updatedUser.accountExpires;
+        }
+
+        // Verificamos si la fecha es válida
+        if (!isNaN(dateToFormat.getTime())) {
+          // Formateamos la fecha al formato YYYY-MM-DD
+          const year = dateToFormat.getFullYear();
+          const month = String(dateToFormat.getMonth() + 1).padStart(2, "0");
+          const day = String(dateToFormat.getDate()).padStart(2, "0");
+          updatedUser.accountExpires = `${year}-${month}-${day}`;
+        } else {
+          updatedUser.accountExpires = "";
+        }
+      } else if (updatedUser.accountExpires === "Nunca expira") {
         updatedUser.accountExpires = "";
       }
+
       await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/ad/${editableUser.username}/`,
         updatedUser
@@ -328,7 +380,10 @@ const ADUserEditor = ({ onSelect }) => {
   ];
 
   return (
-    <Card className="w-full h-dvh">
+    <Card
+      className="w-full h-dvh
+"
+    >
       <CardHeader className="px-6 pt-6">
         <TerceroAutocomplete onSelect={handleSeleccionTercero} />
       </CardHeader>
