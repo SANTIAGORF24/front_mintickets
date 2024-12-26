@@ -75,6 +75,11 @@ export function Navbaruser() {
             Todos los tickets
           </Link>
         </NavbarItem>
+        <NavbarItem>
+          <Link href="/daconfig" className="text-[#4a53a0] font-bold">
+            daconfig
+          </Link>
+        </NavbarItem>
       </NavbarContent>
 
       <NavbarContent as="div" justify="end">

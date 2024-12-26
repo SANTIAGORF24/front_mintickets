@@ -4,6 +4,7 @@ import { Temas } from "./Temas";
 import { Estados } from "./Estados";
 import { TerceroForm } from "./TerceroForm";
 import { SpecialistForm } from "./SpecialistForm";
+import ADUserEditor from "../../components/ADUserEditor/ADUserEditor";
 
 export function ListDatosconf() {
   return (
