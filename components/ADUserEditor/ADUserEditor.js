@@ -7,6 +7,8 @@ import { es } from "date-fns/locale";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { parseISO } from "date-fns"; // Añadimos parseISO para manejar fechas ISO
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Keeping the original TerceroAutocomplete component
 const TerceroAutocomplete = ({ onSelect }) => {
@@ -178,7 +180,7 @@ const generatePassword = () => {
   return String.fromCharCode(...utf16lePassword);
 };
 
-const ADUserEditor = ({ onSelect }) => {
+const ADUserEditor = ({ onSelect, isDrawerOpen, setIsDrawerOpen }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editableUser, setEditableUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -192,8 +194,13 @@ const ADUserEditor = ({ onSelect }) => {
       onSelect(usuario);
     }
     setSelectedUser(usuario);
-    setEditableUser({ ...usuario });
+    setEditableUser({
+      ...usuario,
+      state: usuario.state || "",
+      office: usuario.office || "",
+    });
     setIsEditing(false);
+    setIsDrawerOpen(true);
   };
 
   const handleInputChange = (e) => {
@@ -206,6 +213,7 @@ const ADUserEditor = ({ onSelect }) => {
         ...prev,
         office,
       }));
+      setStateSearchTerm(value); // Actualizar el término de búsqueda del estado
     } else if (name === "office") {
       const officeCode = Object.keys(officeOptions).find(
         (key) => officeOptions[key] === value
@@ -213,37 +221,35 @@ const ADUserEditor = ({ onSelect }) => {
       setEditableUser((prev) => ({
         ...prev,
         state: officeCode || "",
+        department: value, // Actualizar también el campo "department" con el valor de "office"
+      }));
+      setOfficeSearchTerm(value); // Actualizar el término de búsqueda de la oficina
+    } else if (name === "description") {
+      setEditableUser((prev) => ({
+        ...prev,
+        description: value,
+        title: value, // Actualizar también el campo "title" con el valor de "description"
       }));
     }
   };
 
   const handleDateChange = (date) => {
-    if (!date) {
-      setEditableUser((prev) => ({
-        ...prev,
-        accountExpires: "Nunca expira",
-      }));
-      return;
+    if (date) {
+      date.setDate(date.getDate()); // Ajustar la fecha sumando 3 días
     }
-
-    // Formateamos la fecha directamente en formato YYYY-MM-DD
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
     setEditableUser((prev) => ({
       ...prev,
-      accountExpires: `${year}-${month}-${day}`,
+      accountExpires: date ? date.toISOString().split("T")[0] : "",
     }));
   };
 
   const formatAccountExpires = (date) => {
-    if (!date || date === "0" || date === "Nunca expira") {
+    if (!date || date === "0") {
       return "Nunca expira";
     }
-
     try {
       const dateObj = typeof date === "string" ? parseISO(date) : date;
+      dateObj.setDate(dateObj.getDate()); // Ajustar la fecha restando 3 días
       return format(dateObj, "yyyy-MM-dd", { locale: es });
     } catch (e) {
       return date; // Si hay error en el parseo, retornamos la fecha original
@@ -255,28 +261,11 @@ const ADUserEditor = ({ onSelect }) => {
       const updatedUser = { ...editableUser };
 
       // Manejo mejorado de la fecha
-      if (
-        updatedUser.accountExpires &&
-        updatedUser.accountExpires !== "Nunca expira"
-      ) {
-        let dateToFormat;
-
-        // Si es una fecha string, la parseamos primero
-        if (typeof updatedUser.accountExpires === "string") {
-          try {
-            // Intentamos parsear la fecha ISO
-            dateToFormat = parseISO(updatedUser.accountExpires);
-          } catch (e) {
-            // Si falla, asumimos que ya es una fecha válida
-            dateToFormat = new Date(updatedUser.accountExpires);
-          }
-        } else {
-          dateToFormat = updatedUser.accountExpires;
-        }
-
-        // Verificamos si la fecha es válida
+      if (updatedUser.accountExpires === "Nunca expira") {
+        updatedUser.accountExpires = "";
+      } else if (updatedUser.accountExpires) {
+        const dateToFormat = new Date(updatedUser.accountExpires);
         if (!isNaN(dateToFormat.getTime())) {
-          // Formateamos la fecha al formato YYYY-MM-DD
           const year = dateToFormat.getFullYear();
           const month = String(dateToFormat.getMonth() + 1).padStart(2, "0");
           const day = String(dateToFormat.getDate()).padStart(2, "0");
@@ -284,8 +273,6 @@ const ADUserEditor = ({ onSelect }) => {
         } else {
           updatedUser.accountExpires = "";
         }
-      } else if (updatedUser.accountExpires === "Nunca expira") {
-        updatedUser.accountExpires = "";
       }
 
       await axios.put(
@@ -294,13 +281,13 @@ const ADUserEditor = ({ onSelect }) => {
       );
       setSelectedUser(editableUser);
       setIsEditing(false);
-      alert("Datos actualizados correctamente");
+      toast.success("Datos actualizados correctamente");
     } catch (error) {
       console.error("Error actualizando datos:", error);
       if (error.response && error.response.data && error.response.data.error) {
-        alert(`Error actualizando datos: ${error.response.data.error}`);
+        toast.error(`Error actualizando datos: ${error.response.data.error}`);
       } else {
-        alert("Error actualizando datos");
+        toast.error("Error actualizando datos");
       }
     }
   };
@@ -313,10 +300,12 @@ const ADUserEditor = ({ onSelect }) => {
         { isActive: newStatus }
       );
       setEditableUser((prev) => ({ ...prev, isActive: newStatus }));
-      alert(`Usuario ${newStatus ? "activado" : "desactivado"} correctamente`);
+      toast.success(
+        `Usuario ${newStatus ? "activado" : "desactivado"} correctamente`
+      );
     } catch (error) {
       console.error("Error actualizando estado del usuario:", error);
-      alert("Error actualizando estado del usuario");
+      toast.error("Error actualizando estado del usuario");
     }
   };
 
@@ -348,7 +337,7 @@ const ADUserEditor = ({ onSelect }) => {
       );
 
       if (response.data.message) {
-        alert("Contraseña actualizada correctamente");
+        toast.success("Contraseña actualizada correctamente");
         setNewPassword("");
         setShowPassword(false);
       }
@@ -364,7 +353,7 @@ const ADUserEditor = ({ onSelect }) => {
         errorMessage = error.response.data.error;
       }
 
-      alert(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -380,10 +369,7 @@ const ADUserEditor = ({ onSelect }) => {
   ];
 
   return (
-    <Card
-      className="w-full h-dvh
-"
-    >
+    <Card className="w-full h-dvh">
       <CardHeader className="px-6 pt-6">
         <TerceroAutocomplete onSelect={handleSeleccionTercero} />
       </CardHeader>
@@ -638,6 +624,7 @@ const ADUserEditor = ({ onSelect }) => {
               }
             })}
           </div>
+          <ToastContainer position="top-right" autoClose={3000} />
         </CardBody>
       )}
     </Card>

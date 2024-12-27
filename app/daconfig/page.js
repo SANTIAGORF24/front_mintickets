@@ -1,6 +1,6 @@
 "use client";
 import { Navbaruser } from "../../components/NavBar/Navbaruser";
-import ADUserEditor from "../../components/ADUserEditor/ADUserEditor";
+import DirectorioActivo from "../../components/ADUserEditor/DirectorioActivo";
 
 export default function Home() {
   return (
@@ -8,7 +8,7 @@ export default function Home() {
       <Navbaruser />
 
       <div className="w-5/6 felx flex-col mx-auto">
-        <ADUserEditor />
+        <DirectorioActivo />
       </div>
     </>
   );

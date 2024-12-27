@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Input, Button, CircularProgress } from "@nextui-org/react";
 import { EyeFilledIcon } from "./EyeFilledIcon";
@@ -13,6 +13,13 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      router.push("/ticket");
+    }
+  }, []);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
