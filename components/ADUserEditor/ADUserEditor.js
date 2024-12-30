@@ -193,6 +193,12 @@ const ADUserEditor = ({ onSelect, isDrawerOpen, setIsDrawerOpen }) => {
     if (typeof onSelect === "function") {
       onSelect(usuario);
     }
+    // Si el usuario tiene una fecha de expiración, ajustarla antes de mostrarla
+    if (usuario.accountExpires && usuario.accountExpires !== "0") {
+      const dateObj = new Date(usuario.accountExpires);
+      dateObj.setDate(dateObj.getDate() + 2); // Restar 2 días para la visualización inicial
+      usuario.accountExpires = dateObj.toISOString().split("T")[0];
+    }
     setSelectedUser(usuario);
     setEditableUser({
       ...usuario,
@@ -235,7 +241,7 @@ const ADUserEditor = ({ onSelect, isDrawerOpen, setIsDrawerOpen }) => {
 
   const handleDateChange = (date) => {
     if (date) {
-      date.setDate(date.getDate()); // Ajustar la fecha sumando 3 días
+      date.setDate(date.getDate() + 2); // Ajustar la fecha restando 2 días
     }
     setEditableUser((prev) => ({
       ...prev,
@@ -249,7 +255,7 @@ const ADUserEditor = ({ onSelect, isDrawerOpen, setIsDrawerOpen }) => {
     }
     try {
       const dateObj = typeof date === "string" ? parseISO(date) : date;
-      dateObj.setDate(dateObj.getDate()); // Ajustar la fecha restando 3 días
+      dateObj.setDate(dateObj.getDate() - 3); // Ajustar la fecha sumando 2 días
       return format(dateObj, "yyyy-MM-dd", { locale: es });
     } catch (e) {
       return date; // Si hay error en el parseo, retornamos la fecha original
@@ -327,7 +333,7 @@ const ADUserEditor = ({ onSelect, isDrawerOpen, setIsDrawerOpen }) => {
 
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/ad/${editableUser.username}/password`,
-        { newPassword }, // Cambiar 'password' a 'newPassword'
+        { new_password: newPassword }, // Asegúrate de usar 'new_password'
         {
           timeout: 30000, // 30 segundos de timeout
           headers: {
