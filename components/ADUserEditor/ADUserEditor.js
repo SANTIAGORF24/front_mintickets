@@ -196,7 +196,7 @@ const ADUserEditor = ({ onSelect, isDrawerOpen, setIsDrawerOpen }) => {
     // Si el usuario tiene una fecha de expiración, ajustarla antes de mostrarla
     if (usuario.accountExpires && usuario.accountExpires !== "0") {
       const dateObj = new Date(usuario.accountExpires);
-      dateObj.setDate(dateObj.getDate() + 2); // Restar 2 días para la visualización inicial
+      dateObj.setDate(dateObj.getDate() + 1); // Restar 2 días para la visualización inicial
       usuario.accountExpires = dateObj.toISOString().split("T")[0];
     }
     setSelectedUser(usuario);
